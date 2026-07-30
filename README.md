@@ -44,6 +44,10 @@ Each page has a nav bar with:
 
 This is a deliberate structure: Programs is on-page/primary content, About and Connect are treated as secondary pages reached through the menu.
 
+## Responsive behavior
+
+All four pages include a viewport meta tag and a mobile breakpoint at 760px. Below that width: multi-column grids (stats, session cards, Connect path cards) collapse to a single column, the nav bar's link spacing tightens, and section padding is reduced so pages don't feel overly tall on a phone screen. This has been tested on an actual phone browser, not just assumed from the CSS.
+
 ## Known open items (not fixed by this mockup)
 
 - Email addresses on the Connect page (`info@`, `volunteer@`, `tyson@bridgeupproject.org`) are not yet live inboxes — need to be set up before launch.

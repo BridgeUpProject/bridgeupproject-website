@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Connect With Us — The Bridge Up Project: AI Pathways</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
@@ -52,7 +53,7 @@
   .path-card{ background:#fff; border:1px solid var(--line); border-radius:6px; padding: 34px 28px; }
   .path-card h3{ font-family:'Fraunces', serif; font-size:1.4rem; font-weight:600; margin-bottom:14px; }
   .path-card p{ color:#565f6e; margin-bottom:24px; font-size:0.98rem; }
-  .btn-primary{ background: var(--gold); color: var(--paper-dark); padding: 12px 26px; border-radius:3px; font-weight:700; font-size:0.92rem; display:inline-block; }
+  .btn-primary{ background: var(--gold); color: var(--paper-dark); padding: 12px 26px; border-radius:3px; font-weight:700; font-size:0.92rem; display:inline-block; width:150px; text-align:center; }
 
   footer{
     background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
@@ -60,7 +61,13 @@
   }
   .footer-links{ display:flex; gap:26px; }
 
-  @media (max-width: 760px){ .paths{ grid-template-columns: 1fr; } .nav-links{ gap:16px; } }
+  @media (max-width: 760px){
+    .paths{ grid-template-columns: 1fr; }
+    .nav-links{ gap:16px; }
+    .page-header{ padding: 56px 6% 50px; }
+    section{ padding: 60px 6%; }
+    footer{ padding: 36px 6% 24px; }
+  }
 </style>
 </head>
 <body>
