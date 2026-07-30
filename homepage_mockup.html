@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Bridge Up Project: AI Pathways</title>
+<meta name="description" content="Independence skills through AI.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink: #1161A8;
+    --steel: #2B5291;
+    --gold: #E9BE3F;
+    --paper: #FAF8F4;
+    --paper-dark: #1D3F73;
+    --line: #DCD5C8;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  body{
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  a{ color: inherit; text-decoration: none; }
+
+  /* NAV */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 22px 6%;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 10;
+  }
+  .nav-logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size: 1.15rem; }
+  .nav-logo svg{ height: 34px; width: auto; }
+  .nav-links{ display:flex; align-items:center; gap: 34px; font-size: 0.92rem; font-weight:500; letter-spacing:0.02em; }
+  .nav-links a{ position:relative; padding-bottom:4px; }
+  .nav-links a:hover{ color: var(--gold); }
+  .nav-menu{ position:relative; }
+  .nav-menu summary{
+    list-style:none; cursor:pointer; padding: 8px 16px;
+    border: 1px solid var(--line); border-radius:3px; font-weight:600;
+  }
+  .nav-menu summary::-webkit-details-marker{ display:none; }
+  .nav-menu summary:after{ content:" \25BE"; }
+  .nav-menu[open] summary{ background: var(--ink); color:#fff; border-color:var(--ink); }
+  .nav-menu-panel{
+    position:absolute; right:0; top: calc(100% + 8px); background:#fff;
+    border:1px solid var(--line); border-radius:4px; min-width:180px;
+    box-shadow: 0 8px 24px rgba(17,97,168,0.15); overflow:hidden; z-index:20;
+  }
+  .nav-menu-panel a{ display:block; padding: 13px 18px; font-weight:500; }
+  .nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
+  .nav-cta{
+    background: var(--ink); color:#fff; padding: 10px 22px;
+    border-radius: 3px; font-size:0.88rem; font-weight:600;
+  }
+
+  /* HERO */
+  .hero{
+    background: var(--paper-dark);
+    color: #F4EFE4;
+    padding: 100px 6% 130px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-arc{
+    position:absolute; left:0; right:0; bottom:-2px; height:140px;
+    background: linear-gradient(180deg, transparent, var(--paper) 92%);
+  }
+  .hero-inner{ max-width: 760px; position:relative; }
+  .eyebrow{
+    font-size: 0.8rem; letter-spacing: 0.18em; text-transform:uppercase;
+    color: var(--gold); font-weight:600; margin-bottom: 22px; display:block;
+  }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2.3rem, 4.2vw, 3.4rem);
+    line-height:1.12; margin-bottom: 26px; letter-spacing:-0.01em;
+  }
+  .hero p{ font-size: 1.15rem; color:#CBD3E1; max-width: 580px; margin-bottom: 36px; }
+  .hero-buttons{ display:flex; gap:16px; flex-wrap:wrap; }
+  .btn-primary{
+    background: var(--gold); color: var(--paper-dark); padding: 14px 30px;
+    border-radius:3px; font-weight:700; font-size:0.95rem;
+  }
+  .btn-secondary{
+    border: 1px solid #5A6B87; color:#F4EFE4; padding: 14px 30px;
+    border-radius:3px; font-weight:600; font-size:0.95rem;
+  }
+
+  /* STATS */
+  .stats{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    max-width: 1100px; margin: -70px auto 0; position:relative; z-index:2;
+    padding: 0 6%;
+  }
+  .stat-card{
+    background:#fff; border:1px solid var(--line); padding: 34px 30px;
+    border-right:none;
+  }
+  .stat-card:last-child{ border-right:1px solid var(--line); }
+  .stat-number{ font-family:'Fraunces', serif; font-size:2.6rem; font-weight:700; color:var(--steel); }
+  .stat-label{ font-size:0.92rem; color:#565f6e; margin-top:8px; }
+  .stat-source{ font-size:0.72rem; color:#9aa2ae; margin-top:10px; letter-spacing:0.02em; }
+
+  section{ padding: 100px 6%; }
+  .section-inner{ max-width: 1100px; margin: 0 auto; }
+
+  /* MISSION */
+  .mission{ text-align:center; }
+  .mission h2{
+    font-family:'Fraunces', serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight:600;
+    max-width: 780px; margin: 0 auto 20px; color: var(--ink);
+  }
+  .mission .sub{ color:#5A6472; max-width:620px; margin:0 auto; font-size:1.05rem; }
+
+  /* PROGRAM */
+  .program{ background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .program-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items:center; }
+  .program-tag{ font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:16px; display:block; }
+  .program h3{ font-family:'Fraunces', serif; font-size:2rem; font-weight:600; margin-bottom:18px; }
+  .program p{ color:#565f6e; margin-bottom: 22px; }
+  .session-list{ list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+  .session-list li{ font-size:0.9rem; color: var(--steel); padding-left:20px; position:relative; }
+  .session-list li:before{ content: attr(data-n); position:absolute; left:0; top:0; color:var(--gold); font-weight:700; font-size:0.78rem; }
+  .program-visual{
+    background: var(--paper-dark); border-radius:6px; height: 340px;
+    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+  }
+  .program-visual svg{ width:70%; height:auto; }
+
+  /* FOUNDER */
+  .founder{ display:grid; gap: 50px; align-items:start; }
+  .founder .name{ font-weight:700; font-size:0.95rem; }
+  .founder .role{ font-size:0.85rem; color:#7A8290; }
+
+  /* CTA STRIP */
+  .cta-strip{
+    background: var(--ink); color:#fff; text-align:center; padding: 90px 6%;
+  }
+  .cta-strip h2{ font-family:'Fraunces', serif; font-size:2.1rem; font-weight:600; margin-bottom:16px; }
+  .cta-strip p{ color:#B9C2D4; max-width:520px; margin: 0 auto 34px; }
+
+  footer{
+    background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;
+    font-size:0.85rem;
+  }
+  .footer-links{ display:flex; gap:26px; }
+
+  @media (max-width: 760px){
+    .stats{ grid-template-columns: 1fr; margin-top:20px; }
+    .stat-card{ border-right:1px solid var(--line) !important; border-bottom:none; }
+    .program-grid, .founder{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="homepage_mockup.html" class="nav-logo">
+    <svg viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="70" width="10" height="70" fill="#1161A8"/>
+      <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
+      <rect x="0" y="130" width="160" height="8" fill="#1161A8"/>
+      <path d="M 13 130 Q 80 30 147 130" fill="none" stroke="#2B5291" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="80" cy="47" r="9" fill="#E9BE3F"/>
+    </svg>
+    The Bridge Up Project
+  </a>
+  <div class="nav-links">
+    <a href="programs_mockup.html">Programs</a>
+    <details class="nav-menu">
+      <summary>Menu</summary>
+      <div class="nav-menu-panel">
+        <a href="about_us_mockup.html">About Us</a>
+        <a href="connect_with_us_mockup.html">Connect With Us</a>
+      </div>
+    </details>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">AI Pathways</span>
+    <h1>We teach foster youth independence skills through the use of AI.</h1>
+    <div class="hero-buttons">
+      <a class="btn-primary" href="#programs">See the AI Pathways program</a>
+      <a class="btn-secondary" href="connect_with_us_mockup.html">Connect With Us</a>
+    </div>
+  </div>
+  <div class="hero-arc"></div>
+</section>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-number">8–12%</div>
+    <div class="stat-label">of former foster youth earn a college degree by their mid-to-late 20s, compared to 49% of their peers.</div>
+    <div class="stat-source">Annie E. Casey Foundation, 2025</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">56%</div>
+    <div class="stat-label">of youth in foster care at 17 are employed at 21, well below the rate for their peers.</div>
+    <div class="stat-source">KIDS COUNT Data Center</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">+69%</div>
+    <div class="stat-label">more likely to earn a high school credential when support continues past age 18.</div>
+    <div class="stat-source">Chapin Hall, via AECF 2025</div>
+  </div>
+</div>
+<p style="max-width:1100px; margin: 14px auto 0; padding: 0 6%; font-size:0.78rem; color:#9aa2ae;">National data, Annie E. Casey Foundation. Not specific to partner programs.</p>
+
+<section class="mission" id="mission">
+  <div class="section-inner">
+    <span class="eyebrow" style="color:var(--gold);">Our Mission</span>
+    <h2>The Bridge Up Project gives foster youth independence skills through AI literacy.</h2>
+  </div>
+</section>
+
+<section class="program" id="programs">
+  <div class="section-inner program-grid">
+    <div>
+      <span class="program-tag">Flagship Program</span>
+      <h3>AI Pathways</h3>
+      <p>An eight-week, small-group workshop that introduces teens to AI as a practical tool. Each session starts with something familiar and builds toward a skill they can use immediately.</p>
+      <ul class="session-list">
+        <li data-n="01">Talking to AI: Prompting</li>
+        <li data-n="02">Making Money with AI</li>
+        <li data-n="03">Understanding Your Money</li>
+        <li data-n="04">Life Skills & Independence</li>
+      </ul>
+      <p style="margin-top:20px;"><a href="programs_mockup.html" style="color:var(--steel); font-weight:600; font-size:0.9rem; border-bottom:1px solid var(--gold);">See the full 8-session curriculum &rarr;</a></p>
+    </div>
+    <div class="program-visual">
+      <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="70" width="10" height="70" fill="#E9BE3F"/>
+        <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
+        <rect x="0" y="130" width="160" height="8" fill="#3A4A66"/>
+        <path d="M 13 130 Q 80 20 147 130" fill="none" stroke="#E9BE3F" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <circle cx="80" cy="34" r="8" fill="#F4EFE4"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 The Bridge Up Project: AI Pathways.</div>
+  <div class="footer-links">
+    <a href="about_us_mockup.html">About</a>
+    <a href="programs_mockup.html">Programs</a>
+    <a href="connect_with_us_mockup.html">Connect</a>
+  </div>
+</footer>
+
+</body>
+</html>

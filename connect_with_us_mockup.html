@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Connect With Us — The Bridge Up Project: AI Pathways</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink: #1161A8;
+    --steel: #2B5291;
+    --gold: #E9BE3F;
+    --paper: #FAF8F4;
+    --paper-dark: #1D3F73;
+    --line: #DCD5C8;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  body{ font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); line-height: 1.55; }
+  a{ color: inherit; text-decoration: none; }
+
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 22px 6%; background: var(--paper); border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 10;
+  }
+  .nav-logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size: 1.15rem; }
+  .nav-logo svg{ height: 34px; width: auto; }
+  .nav-links{ display:flex; align-items:center; gap: 34px; font-size: 0.92rem; font-weight:500; letter-spacing:0.02em; }
+  .nav-links a{ position:relative; padding-bottom:4px; }
+  .nav-links a:hover{ color: var(--gold); }
+  .nav-menu{ position:relative; }
+  .nav-menu summary{ list-style:none; cursor:pointer; padding: 8px 16px; border: 1px solid var(--line); border-radius:3px; font-weight:600; }
+  .nav-menu summary::-webkit-details-marker{ display:none; }
+  .nav-menu summary:after{ content:" \25BE"; }
+  .nav-menu[open] summary{ background: var(--ink); color:#fff; border-color:var(--ink); }
+  .nav-menu-panel{
+    position:absolute; right:0; top: calc(100% + 8px); background:#fff;
+    border:1px solid var(--line); border-radius:4px; min-width:180px;
+    box-shadow: 0 8px 24px rgba(17,97,168,0.15); overflow:hidden; z-index:20;
+  }
+  .nav-menu-panel a{ display:block; padding: 13px 18px; font-weight:500; }
+  .nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
+
+  .page-header{ background: var(--paper-dark); color:#F4EFE4; padding: 80px 6% 70px; }
+  .eyebrow{ font-size: 0.8rem; letter-spacing: 0.18em; text-transform:uppercase; color: var(--gold); font-weight:600; margin-bottom: 18px; display:block; }
+  .page-header h1{ font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2rem, 4vw, 2.8rem); max-width:640px; }
+  .page-header p{ color:#CBD3E1; max-width:560px; margin-top:18px; font-size:1.05rem; }
+
+  section{ padding: 90px 6%; }
+  .paths{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1080px; margin: 0 auto; }
+  .path-card{ background:#fff; border:1px solid var(--line); border-radius:6px; padding: 34px 28px; }
+  .path-card h3{ font-family:'Fraunces', serif; font-size:1.4rem; font-weight:600; margin-bottom:14px; }
+  .path-card p{ color:#565f6e; margin-bottom:24px; font-size:0.98rem; }
+  .btn-primary{ background: var(--gold); color: var(--paper-dark); padding: 12px 26px; border-radius:3px; font-weight:700; font-size:0.92rem; display:inline-block; }
+
+  footer{
+    background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; font-size:0.85rem;
+  }
+  .footer-links{ display:flex; gap:26px; }
+
+  @media (max-width: 760px){ .paths{ grid-template-columns: 1fr; } .nav-links{ gap:16px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="homepage_mockup.html" class="nav-logo">
+    <svg viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="70" width="10" height="70" fill="#1161A8"/>
+      <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
+      <rect x="0" y="130" width="160" height="8" fill="#1161A8"/>
+      <path d="M 13 130 Q 80 30 147 130" fill="none" stroke="#2B5291" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="80" cy="47" r="9" fill="#E9BE3F"/>
+    </svg>
+    The Bridge Up Project
+  </a>
+  <div class="nav-links">
+    <a href="programs_mockup.html">Programs</a>
+    <details class="nav-menu">
+      <summary>Menu</summary>
+      <div class="nav-menu-panel">
+        <a href="about_us_mockup.html">About Us</a>
+        <a href="connect_with_us_mockup.html">Connect With Us</a>
+      </div>
+    </details>
+  </div>
+</nav>
+
+<section class="page-header">
+  <span class="eyebrow">Connect With Us</span>
+  <h1>Learn more, and find your way in.</h1>
+  <p>The Bridge Up Project is a youth-led nonprofit in formation. Whether you run a program or want to mentor directly, there are two clear paths.</p>
+</section>
+
+<section>
+  <div class="paths">
+    <div class="path-card">
+      <h3>Partner With Us</h3>
+      <p>Run a youth-services program and want to bring AI Pathways in? Let's talk about what that could look like.</p>
+      <a class="btn-primary" href="mailto:info@bridgeupproject.org?subject=Partnering with The Bridge Up Project">Get in touch</a>
+    </div>
+    <div class="path-card">
+      <h3>Volunteer as a Mentor</h3>
+      <p>Work directly with youth in transition and want to tell us what we're missing? We want to hear from you.</p>
+      <a class="btn-primary" href="mailto:volunteer@bridgeupproject.org?subject=Volunteering with The Bridge Up Project">Get in touch</a>
+    </div>
+    <div class="path-card">
+      <h3>Contact Us</h3>
+      <p>Have a question that doesn't fit either category above? Email us directly and we'll get back to you.</p>
+      <a class="btn-primary" href="mailto:tyson@bridgeupproject.org?subject=Question for The Bridge Up Project">Email Us</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 The Bridge Up Project: AI Pathways.</div>
+  <div class="footer-links">
+    <a href="about_us_mockup.html">About</a>
+    <a href="programs_mockup.html">Programs</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<svg width="640" height="220" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Arc: navy-blend base rising into gold crown -->
+    <linearGradient id="riseGradient" x1="0" y1="140" x2="0" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2F3E63"/>
+      <stop offset="15%" stop-color="#2F3E63"/>
+      <stop offset="42%" stop-color="#E9BE3F"/>
+      <stop offset="100%" stop-color="#E9BE3F"/>
+    </linearGradient>
+    <!-- Blue blend: darker navy base rising into cobalt -->
+    <linearGradient id="blueBlend" x1="0" y1="140" x2="0" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2F3E63"/>
+      <stop offset="100%" stop-color="#1161A8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon mark -->
+  <g transform="translate(20,20)">
+    <!-- left pier: dark-to-bright blue blend -->
+    <rect x="8" y="70" width="10" height="70" fill="url(#blueBlend)"/>
+    <!-- right pier: solid gold -->
+    <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
+    <!-- deck: cobalt -->
+    <rect x="0" y="130" width="160" height="8" fill="#1161A8"/>
+    <!-- arc: navy-to-gold rise -->
+    <path d="M 13 130 Q 80 30 147 130" fill="none" stroke="url(#riseGradient)" stroke-width="7" stroke-linecap="round"/>
+    <!-- node at apex: solid gold dot -->
+    <circle cx="80" cy="47" r="9" fill="#E9BE3F"/>
+    <circle cx="80" cy="47" r="9" fill="none" stroke="#1161A8" stroke-width="2"/>
+  </g>
+
+  <!-- Wordmark: cobalt -->
+  <g transform="translate(210,0)">
+    <text x="0" y="95" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#1161A8" letter-spacing="0.5">THE BRIDGE UP</text>
+    <text x="0" y="140" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#1161A8" letter-spacing="0.5">PROJECT</text>
+    <text x="3" y="168" font-family="Arial, Helvetica, sans-serif" font-size="15" letter-spacing="3" fill="#E9BE3F">AI PATHWAYS</text>
+  </g>
+</svg>
