@@ -1,3 +1,7 @@
+# TODO
+
+Set up as next.js project and deploy to vercel. Set to private (preview).
+
 # The Bridge Up Project — Website Mockup
 
 Status: design and content mockup, not a live production build. Handed off for reference in building the real site.
@@ -7,6 +11,8 @@ Status: design and content mockup, not a live production build. Handed off for r
 Four static HTML pages plus a logo, showing the intended structure, copy, and visual design for bridgeupproject.org. These are self-contained mockups (no build tools, no framework, inline CSS in each file) meant to communicate design intent, not to be deployed as-is.
 
 ## Files
+
+![](example.com/img.jpg)
 
 - `homepage_mockup.html` — landing page: hero, national stats, mission statement, program teaser
 - `programs_mockup.html` — full 8-session AI Pathways curriculum
