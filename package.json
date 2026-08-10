@@ -16,8 +16,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "node server.js",
-
+    "serve": "node server.js"
   },
   "dependencies": {
     "finalhandler": "^2.1.1",
