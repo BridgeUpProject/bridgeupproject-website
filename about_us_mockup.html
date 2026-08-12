@@ -66,8 +66,18 @@
     footer{ padding: 36px 6% 24px; }
   }
 </style>
+<link rel="icon" href="bridge_up_project_logo.svg" type="image/svg+xml">
+<meta name="description" content="Why founder Tyson Youm started The Bridge Up Project, after working with a residential youth program since 2023.">
+<meta property="og:title" content="About Us - The Bridge Up Project">
+<meta property="og:description" content="Why founder Tyson Youm started The Bridge Up Project, after working with a residential youth program since 2023.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');</script>
+<script src="site.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav>
   <a href="homepage_mockup.html" class="nav-logo">
@@ -81,10 +91,11 @@
     The Bridge Up Project
   </a>
   <div class="nav-links">
-    <a href="programs_mockup.html">Programs</a>
+    <a class="nav-direct" href="programs_mockup.html">Programs</a>
     <details class="nav-menu">
       <summary>Menu</summary>
       <div class="nav-menu-panel">
+        <a class="menu-only" href="programs_mockup.html">Programs</a>
         <a href="about_us_mockup.html">About Us</a>
         <a href="connect_with_us_mockup.html">Connect With Us</a>
       </div>
@@ -92,20 +103,28 @@
   </div>
 </nav>
 
+<main id="main">
+
 <section class="page-header">
-  <span class="eyebrow">About Us</span>
-  <h1>Why I Started This</h1>
+  <div class="header-bg" aria-hidden="true">
+    <span class="hero-glow hero-glow-a" data-parallax-y="0.14"></span>
+    <span class="hero-glow hero-glow-b" data-parallax-y="0.26"></span>
+  </div>
+  <span class="eyebrow" data-reveal>About Us</span>
+  <h1 data-words>Why I Started This</h1>
 </section>
 
 <section class="bio">
   <div class="section-inner">
-    <p>I've been working with a residential youth program since 2023 and seen firsthand how much goes into preparing teens for life after care. The Bridge Up Project brings one specific piece to that preparation: independence skills through AI literacy.</p>
-    <div class="signoff">
+    <p data-reveal>I've been working with a residential youth program since 2023 and seen firsthand how much goes into preparing teens for life after care. The Bridge Up Project brings one specific piece to that preparation: independence skills through AI literacy.</p>
+    <div class="signoff" data-reveal>
       <div class="name">Tyson Youm</div>
       <div class="role">Founder, The Bridge Up Project</div>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div>© 2026 The Bridge Up Project: AI Pathways.</div>

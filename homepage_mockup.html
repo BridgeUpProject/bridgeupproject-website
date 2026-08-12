@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Bridge Up Project: AI Pathways</title>
-<meta name="description" content="Independence skills through AI.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -164,8 +163,18 @@
     footer{ padding: 36px 6% 24px; }
   }
 </style>
+<link rel="icon" href="bridge_up_project_logo.svg" type="image/svg+xml">
+<meta name="description" content="The Bridge Up Project teaches foster youth independence skills through AI literacy.">
+<meta property="og:title" content="The Bridge Up Project: AI Pathways">
+<meta property="og:description" content="The Bridge Up Project teaches foster youth independence skills through AI literacy.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');</script>
+<script src="site.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav>
   <a href="homepage_mockup.html" class="nav-logo">
@@ -179,10 +188,11 @@
     The Bridge Up Project
   </a>
   <div class="nav-links">
-    <a href="programs_mockup.html">Programs</a>
+    <a class="nav-direct" href="programs_mockup.html">Programs</a>
     <details class="nav-menu">
       <summary>Menu</summary>
       <div class="nav-menu-panel">
+        <a class="menu-only" href="programs_mockup.html">Programs</a>
         <a href="about_us_mockup.html">About Us</a>
         <a href="connect_with_us_mockup.html">Connect With Us</a>
       </div>
@@ -190,47 +200,58 @@
   </div>
 </nav>
 
+<main id="main">
+
 <section class="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <span class="hero-glow hero-glow-a" data-parallax-y="0.14"></span>
+    <span class="hero-glow hero-glow-b" data-parallax-y="0.26"></span>
+    <svg class="hero-arcline" viewBox="0 0 1200 220" preserveAspectRatio="none" data-parallax-x="0.45">
+      <path d="M 0 200 Q 300 30 600 110 T 1200 40"/>
+    </svg>
+  </div>
   <div class="hero-inner">
-    <span class="eyebrow">AI Pathways</span>
-    <h1>We teach foster youth independence skills through the use of AI.</h1>
-    <div class="hero-buttons">
-      <a class="btn-primary" href="#programs">See the AI Pathways program</a>
+    <span class="eyebrow" data-reveal>AI Pathways</span>
+    <h1 data-words>We teach foster youth independence skills through the use of AI.</h1>
+    <div class="hero-buttons" data-reveal>
+      <a class="btn-primary btn-arrow" href="#programs"><span>See the AI Pathways program</span><span class="btn-icon" aria-hidden="true">&rarr;</span></a>
       <a class="btn-secondary" href="connect_with_us_mockup.html">Connect With Us</a>
     </div>
   </div>
   <div class="hero-arc"></div>
 </section>
 
+<div class="stats-wrap">
 <div class="stats">
-  <div class="stat-card">
+  <div class="stat-card stat-lead reveal-card" data-reveal>
     <div class="stat-number">8–12%</div>
     <div class="stat-label">of former foster youth earn a college degree by their mid-to-late 20s, compared to 49% of their peers.</div>
     <div class="stat-source">Annie E. Casey Foundation, 2025</div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card reveal-card" data-reveal>
     <div class="stat-number">56%</div>
     <div class="stat-label">of youth in foster care at 17 are employed at 21, well below the rate for their peers.</div>
     <div class="stat-source">KIDS COUNT Data Center</div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card reveal-card" data-reveal>
     <div class="stat-number">+69%</div>
     <div class="stat-label">more likely to earn a high school credential when support continues past age 18.</div>
     <div class="stat-source">Chapin Hall, via AECF 2025</div>
   </div>
 </div>
-<p style="max-width:1100px; margin: 14px auto 0; padding: 0 6%; font-size:0.78rem; color:#9aa2ae;">National data, Annie E. Casey Foundation. Not specific to partner programs.</p>
+</div>
+<p class="stats-note" data-reveal>National data, Annie E. Casey Foundation. Not specific to partner programs.</p>
 
 <section class="mission" id="mission">
-  <div class="section-inner">
-    <span class="eyebrow" style="color:var(--gold);">Our Mission</span>
+  <div class="section-inner" data-reveal>
+    <span class="eyebrow">Our Mission</span>
     <h2>The Bridge Up Project gives foster youth independence skills through AI literacy.</h2>
   </div>
 </section>
 
 <section class="program" id="programs">
-  <div class="section-inner program-grid">
-    <div>
+  <div class="section-inner program-grid" data-drift="10" data-drift-axis="column">
+    <div data-reveal>
       <span class="program-tag">Flagship Program</span>
       <h3>AI Pathways</h3>
       <p>An eight-week, small-group workshop that introduces teens to AI as a practical tool. Each session starts with something familiar and builds toward a skill they can use immediately.</p>
@@ -240,19 +261,23 @@
         <li data-n="03">Understanding Your Money</li>
         <li data-n="04">Life Skills & Independence</li>
       </ul>
-      <p style="margin-top:20px;"><a href="programs_mockup.html" style="color:var(--steel); font-weight:600; font-size:0.9rem; border-bottom:1px solid var(--gold);">See the full 8-session curriculum &rarr;</a></p>
+      <p class="program-more"><a class="link-rule" href="programs_mockup.html">See the full 8-session curriculum <span class="link-arrow" aria-hidden="true">&rarr;</span></a></p>
     </div>
-    <div class="program-visual">
+    <div class="visual-shell">
+     <div class="program-visual" data-reveal>
       <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="70" width="10" height="70" fill="#E9BE3F"/>
-        <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
-        <rect x="0" y="130" width="160" height="8" fill="#3A4A66"/>
-        <path d="M 13 130 Q 80 20 147 130" fill="none" stroke="#E9BE3F" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
-        <circle cx="80" cy="34" r="8" fill="#F4EFE4"/>
+        <rect class="arc-pillar arc-pillar-l" x="8" y="70" width="10" height="70" fill="#E9BE3F"/>
+        <rect class="arc-pillar arc-pillar-r" x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
+        <rect class="arc-deck" x="0" y="130" width="160" height="8" fill="#3A4A66"/>
+        <path class="arc-span" d="M 13 130 Q 80 20 147 130" fill="none" stroke="#E9BE3F" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <circle class="arc-key" cx="80" cy="34" r="8" fill="#F4EFE4"/>
       </svg>
+     </div>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div>© 2026 The Bridge Up Project: AI Pathways.</div>

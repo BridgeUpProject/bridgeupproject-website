@@ -69,8 +69,18 @@
     footer{ padding: 36px 6% 24px; }
   }
 </style>
+<link rel="icon" href="bridge_up_project_logo.svg" type="image/svg+xml">
+<meta name="description" content="Partner with us, volunteer as a mentor, or get in touch with The Bridge Up Project.">
+<meta property="og:title" content="Connect With Us - The Bridge Up Project">
+<meta property="og:description" content="Partner with us, volunteer as a mentor, or get in touch with The Bridge Up Project.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');</script>
+<script src="site.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav>
   <a href="homepage_mockup.html" class="nav-logo">
@@ -84,10 +94,11 @@
     The Bridge Up Project
   </a>
   <div class="nav-links">
-    <a href="programs_mockup.html">Programs</a>
+    <a class="nav-direct" href="programs_mockup.html">Programs</a>
     <details class="nav-menu">
       <summary>Menu</summary>
       <div class="nav-menu-panel">
+        <a class="menu-only" href="programs_mockup.html">Programs</a>
         <a href="about_us_mockup.html">About Us</a>
         <a href="connect_with_us_mockup.html">Connect With Us</a>
       </div>
@@ -95,31 +106,41 @@
   </div>
 </nav>
 
+<main id="main">
+
 <section class="page-header">
-  <span class="eyebrow">Connect With Us</span>
-  <h1>Learn more, and find your way in.</h1>
-  <p>The Bridge Up Project is a youth-led nonprofit in formation. Whether you run a program or want to mentor directly, there are two clear paths.</p>
+  <div class="header-bg" aria-hidden="true">
+    <span class="hero-glow hero-glow-a" data-parallax-y="0.14"></span>
+    <span class="hero-glow hero-glow-b" data-parallax-y="0.26"></span>
+  </div>
+  <span class="eyebrow" data-reveal>Connect With Us</span>
+  <h1 data-words>Learn more, and find your way in.</h1>
+  <p data-reveal>The Bridge Up Project is a youth-led nonprofit in formation. Whether you run a program or want to mentor directly, there are two clear paths.</p>
 </section>
 
 <section>
-  <div class="paths">
-    <div class="path-card">
+  <div class="paths" data-drift="10">
+    <div class="path-card reveal-card" data-reveal>
       <h3>Partner With Us</h3>
       <p>Run a youth-services program and want to bring AI Pathways in? Let's talk about what that could look like.</p>
       <a class="btn-primary" href="mailto:info@bridgeupproject.org?subject=Partnering with The Bridge Up Project">Get in touch</a>
     </div>
-    <div class="path-card">
+    <div class="path-card reveal-card" data-reveal>
       <h3>Volunteer as a Mentor</h3>
       <p>Work directly with youth in transition and want to tell us what we're missing? We want to hear from you.</p>
       <a class="btn-primary" href="mailto:volunteer@bridgeupproject.org?subject=Volunteering with The Bridge Up Project">Get in touch</a>
     </div>
-    <div class="path-card">
-      <h3>Contact Us</h3>
-      <p>Have a question that doesn't fit either category above? Email us directly and we'll get back to you.</p>
+    <div class="path-card path-card--wide reveal-card" data-reveal>
+      <div class="path-card-body">
+        <h3>Contact Us</h3>
+        <p>Have a question that doesn't fit either category above? Email us directly and we'll get back to you.</p>
+      </div>
       <a class="btn-primary" href="mailto:tyson@bridgeupproject.org?subject=Question for The Bridge Up Project">Email Us</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div>© 2026 The Bridge Up Project: AI Pathways.</div>

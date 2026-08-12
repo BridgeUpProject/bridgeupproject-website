@@ -79,8 +79,18 @@
     footer{ padding: 36px 6% 24px; }
   }
 </style>
+<link rel="icon" href="bridge_up_project_logo.svg" type="image/svg+xml">
+<meta name="description" content="AI Pathways: an eight-week, small-group workshop introducing teens in care to AI as a practical tool.">
+<meta property="og:title" content="Programs - The Bridge Up Project">
+<meta property="og:description" content="AI Pathways: an eight-week, small-group workshop introducing teens in care to AI as a practical tool.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');</script>
+<script src="site.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav>
   <a href="homepage_mockup.html" class="nav-logo">
@@ -94,10 +104,11 @@
     The Bridge Up Project
   </a>
   <div class="nav-links">
-    <a href="programs_mockup.html">Programs</a>
+    <a class="nav-direct" href="programs_mockup.html" aria-current="page">Programs</a>
     <details class="nav-menu">
       <summary>Menu</summary>
       <div class="nav-menu-panel">
+        <a class="menu-only" href="programs_mockup.html" aria-current="page">Programs</a>
         <a href="about_us_mockup.html">About Us</a>
         <a href="connect_with_us_mockup.html">Connect With Us</a>
       </div>
@@ -105,17 +116,23 @@
   </div>
 </nav>
 
+<main id="main">
+
 <section class="page-header">
-  <span class="eyebrow">Programs</span>
-  <h1>AI Pathways</h1>
-  <p>An eight-week, small-group workshop that introduces teens to AI as a practical tool. Each session starts with something familiar and builds toward a skill they can use immediately. Sessions may be adapted to fit each cohort's needs.</p>
+  <div class="header-bg" aria-hidden="true">
+    <span class="hero-glow hero-glow-a" data-parallax-y="0.14"></span>
+    <span class="hero-glow hero-glow-b" data-parallax-y="0.26"></span>
+  </div>
+  <span class="eyebrow" data-reveal>Programs</span>
+  <h1 data-words>AI Pathways</h1>
+  <p data-reveal>An eight-week, small-group workshop that introduces teens to AI as a practical tool. Each session starts with something familiar and builds toward a skill they can use immediately. Sessions may be adapted to fit each cohort's needs.</p>
 </section>
 
 <section>
   <div class="section-inner">
-    <div class="session-grid">
+    <div class="session-grid" data-drift="12">
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">1</div><h3>What is AI?</h3></div>
         <ul>
           <li>Introduction to AI through fun, relatable activities</li>
@@ -125,7 +142,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">2</div><h3>Talking to AI: Prompting</h3></div>
         <ul>
           <li>How to ask better questions</li>
@@ -135,7 +152,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">3</div><h3>Literacy & Communication</h3></div>
         <ul>
           <li>Reading and comprehension support</li>
@@ -145,7 +162,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">4</div><h3>Your AI Advisor</h3></div>
         <ul>
           <li>Career exploration</li>
@@ -155,7 +172,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">5</div><h3>Making Money with AI</h3></div>
         <ul>
           <li>Exploring side hustles and small businesses</li>
@@ -165,7 +182,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">6</div><h3>Finding Your First Customer</h3></div>
         <ul>
           <li>Creating flyers and marketing materials</li>
@@ -175,7 +192,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">7</div><h3>Understanding Your Money</h3></div>
         <ul>
           <li>Understanding a paycheck</li>
@@ -185,7 +202,7 @@
         </ul>
       </div>
 
-      <div class="session-card">
+      <div class="session-card reveal-card" data-reveal>
         <div class="session-head"><div class="session-num">8</div><h3>Life Skills & Independence</h3></div>
         <ul>
           <li>Bills and due dates</li>
@@ -198,6 +215,8 @@
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div>© 2026 The Bridge Up Project: AI Pathways.</div>
