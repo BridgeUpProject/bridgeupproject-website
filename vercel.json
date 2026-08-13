@@ -6,6 +6,10 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
+    { "source": "/homepage_mockup", "destination": "/", "permanent": true },
+    { "source": "/programs_mockup", "destination": "/programs", "permanent": true },
+    { "source": "/about_us_mockup", "destination": "/about", "permanent": true },
+    { "source": "/connect_with_us_mockup", "destination": "/connect", "permanent": true },
     { "source": "/homepage_mockup.html", "destination": "/", "permanent": true },
     { "source": "/programs_mockup.html", "destination": "/programs", "permanent": true },
     { "source": "/about_us_mockup.html", "destination": "/about", "permanent": true },
