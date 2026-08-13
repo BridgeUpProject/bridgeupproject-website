@@ -3,7 +3,15 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/", "destination": "/homepage_mockup.html" }
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/homepage_mockup.html", "destination": "/", "permanent": true },
+    { "source": "/programs_mockup.html", "destination": "/programs", "permanent": true },
+    { "source": "/about_us_mockup.html", "destination": "/about", "permanent": true },
+    { "source": "/connect_with_us_mockup.html", "destination": "/connect", "permanent": true },
+    { "source": "/about-us", "destination": "/about", "permanent": true },
+    { "source": "/connect-with-us", "destination": "/connect", "permanent": true },
+    { "source": "/contact", "destination": "/connect", "permanent": true }
   ]
 }

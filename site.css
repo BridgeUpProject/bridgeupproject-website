@@ -186,11 +186,14 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
   .nav-logo:hover svg{ transform: translateY(-2px) rotate(-2deg); }
 }
 
-/* Animated underline replaces the bare colour swap */
+/* Animated underline replaces the bare colour swap.
+   The link box is 44px tall for the touch target, so the rule is
+   pinned just under the text rather than to the bottom of the box. */
 .nav-links > a::after{
   content: "";
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  left: 0; right: 0;
+  bottom: calc(50% - 0.86em);
   height: 2px;
   background: var(--gold);
   transform: scaleX(0);
@@ -647,20 +650,47 @@ section{ padding: clamp(56px, 7.5vw, 104px) 6%; }
 .page-header h1{ font-size: clamp(1.7rem, 5.4vw, 2.8rem); }
 
 /* ============================================================
-   NAV — one control on small screens, never two wrapped rows
+   NAV — every destination visible on desktop, one control on
+   small screens (never two wrapped rows).
+
+   Links and the menu button are different shapes (text vs.
+   bordered pill), so centring their *boxes* is not enough: the
+   link carried a 4px bottom pad that pushed its text 2px above
+   the button's. Both now use the same 44px inline-flex box, so
+   their text sits on one optical line.
    ============================================================ */
 nav{ gap: 16px; }
 .nav-logo{ min-width: 0; }
 .nav-logo svg{ flex-shrink: 0; }
-.nav-links{ flex-shrink: 0; }
+.nav-links{ flex-shrink: 0; gap: 30px; }
+
+.nav-links > a{
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;          /* touch target */
+  padding-bottom: 0;         /* was 4px — the source of the 2px offset */
+  white-space: nowrap;
+}
 
 .nav-menu summary{
   display: inline-flex;
   align-items: center;
-  min-height: 44px;          /* touch target */
+  min-height: 44px;
   white-space: nowrap;       /* "Menu" and its caret stay on one line */
 }
-.menu-only{ display: none; }
+
+/* Desktop: the three destinations stand on their own. The menu
+   button would be a second, redundant route to the same places. */
+.nav-menu{ display: none; }
+
+/* Below 900px three labels plus the wordmark stop fitting on one
+   row, so they collapse into the menu. 900 rather than 760: the
+   squeeze starts well before phone widths. */
+@media (max-width: 900px){
+  .nav-links > a.nav-link{ display: none; }
+  .nav-menu{ display: block; }
+  .nav-links{ gap: 0; }
+}
 
 /* ============================================================
    STATS — lead figure + stacked pair, replacing 3 equal columns.
@@ -771,9 +801,6 @@ nav{ gap: 16px; }
   nav{ padding: 12px 5%; }
   .nav-logo{ font-size: 1rem; gap: 8px; }
   .nav-logo svg{ height: 28px; }
-  .nav-direct{ display: none; }   /* Programs lives in the menu here */
-  .menu-only{ display: block; }
-  .nav-links{ gap: 0; }
   .nav-menu-panel{ min-width: 216px; }
 
   .stats-wrap{ margin-top: 0; padding: 0 5%; }
@@ -814,16 +841,18 @@ nav{ gap: 16px; }
   .hero{ padding-bottom: clamp(58px, 13vw, 84px); }
 }
 
-/* Touch targets: the nav and footer links are visually small text,
-   but on a tablet they still need a 44px-tall hit area. Expanding
-   with an absolutely-positioned ::before keeps layout and the
-   ::after underline exactly where they are. */
+/* Touch targets: the footer links are visually small text, but on a
+   tablet they still need a 44px-tall hit area. Expanding with an
+   absolutely-positioned ::before keeps layout and the ::after
+   underline exactly where they are. (Nav links get their height
+   from the 44px inline-flex box instead.) */
 .nav-links > a::before,
 .footer-links a::before{
   content: "";
   position: absolute;
   inset: -12px -8px;
 }
+.nav-links > a::before{ inset: 0 -8px; }
 
 /* ============================================================
    TIER 4 — cohesion

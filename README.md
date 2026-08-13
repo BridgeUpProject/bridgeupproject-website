@@ -14,13 +14,13 @@ Four static HTML pages plus a logo, showing the intended structure, copy, and vi
 
 ![](example.com/img.jpg)
 
-- `homepage_mockup.html` — landing page: hero, national stats, mission statement, program teaser
-- `programs_mockup.html` — full 8-session AI Pathways curriculum
-- `about_us_mockup.html` — founder bio
-- `connect_with_us_mockup.html` — Partner With Us / Volunteer as a Mentor / Contact Us
+- `index.html` (served at `/`) — landing page: hero, national stats, mission statement, program teaser
+- `programs.html` (served at `/programs`) — full 8-session AI Pathways curriculum
+- `about.html` (served at `/about`) — founder bio
+- `connect.html` (served at `/connect`) — Partner With Us / Volunteer as a Mentor / Contact Us
 - `bridge_up_project_logo.svg` — standalone logo file (icon + wordmark). This is the source of truth for the brand mark. The website's nav icon is coded directly into each page and doesn't depend on this file, but this file is what you need for anything outside the site: Instagram/LinkedIn profile photos, a favicon, letterhead, or any printed material.
 
-Open `homepage_mockup.html` in a browser to start. All four HTML files link to each other by filename (e.g. `href="programs_mockup.html"`), so **keep all four files in the same folder** or the links between them will break.
+Run `npm run serve` and open http://localhost:3000 to start. The pages link to each other by extensionless, root-relative path (e.g. `href="/programs"`), matching production: `cleanUrls` and `trailingSlash: false` in `vercel.json` map `/programs` to `programs.html` and redirect `/programs/` and `/programs.html` to it. `server.js` mirrors that locally, so **opening the HTML files directly from Finder will break the links** — use the server.
 
 ## Brand palette
 
@@ -44,7 +44,7 @@ Both are loaded via `@import` in each file's `<style>` block.
 ## Navigation pattern
 
 Each page has a nav bar with:
-- Logo (links to `homepage_mockup.html`)
+- Logo (links to `/`)
 - A direct "Programs" link
 - A dropdown menu (native `<details>`/`<summary>`, no JS) containing "About Us" and "Connect With Us"
 
