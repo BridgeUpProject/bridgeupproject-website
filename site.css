@@ -759,7 +759,7 @@ nav{ gap: 16px; }
   box-shadow: none;
 }
 .path-card--wide .path-card-body{ min-width: 0; }
-.path-card--wide h3{ font-size: 1.2rem; margin-bottom: 4px; }
+.path-card--wide h3{ margin-bottom: 4px; }   /* size stays the shared .path-card h3 role */
 .path-card--wide p{ margin-bottom: 0; max-width: 62ch; }
 .path-card--wide .btn-primary{ margin-top: 0; flex-shrink: 0; }
 @media (hover: hover) and (pointer: fine){
@@ -944,7 +944,6 @@ section,
 /* One card-title role across pages (was 1.25rem here, 1.4rem there) */
 .session-card h3,
 .path-card h3{ font-size: 1.3rem; }
-.path-card--wide h3{ font-size: 1.2rem; }
 
 /* One session-list item size (was 0.9rem here, 0.94rem there) */
 .session-list li,
