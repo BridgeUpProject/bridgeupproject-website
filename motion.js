@@ -592,8 +592,28 @@
       gsap.set('.arc-deck', { scaleX: 0, transformOrigin: '50% 50%' });
       gsap.set('.arc-span', { drawSVG: '0%' });
       gsap.set('.arc-key', { scale: 0, y: -30, transformOrigin: '50% 50%' });
+      /* Anchored to the VISUAL, not the section.
+
+         Triggering on .program meant the end position - center 40%
+         - referred to the section's centre, and the section is
+         804px tall on a phone against 566 on a laptop. Below
+         1000px .visual-shell also takes order:-1, so the bridge
+         sits at the TOP of a section whose centre is far below it.
+         The two effects compounded: on a 390x844 phone the build
+         completed at scrollY 1566, by which point the bridge's top
+         edge was at viewport y=7 - it finished at the instant it
+         slid off the top of the screen, after 739px of scrolling.
+
+         Anchoring to the visual makes both positions describe the
+         thing the reader is actually watching, so it stays correct
+         under the mobile reorder and at any section height. The
+         percentages are viewport-relative, so this adapts by
+         construction: the build now completes with the bridge
+         centred at 58% of the viewport - comfortably in frame -
+         373px of scroll earlier on a phone and 153px earlier on a
+         laptop. */
       var build = gsap.timeline({
-        scrollTrigger: { trigger: section, start: 'top 80%', end: 'center 40%', scrub: 0.5 }
+        scrollTrigger: { trigger: visual, start: 'top 88%', end: 'center 58%', scrub: 0.5 }
       });
       build
         .to('.arc-pillar-l', { scaleY: 1, duration: 0.35, ease: 'power1.out' }, 0)
