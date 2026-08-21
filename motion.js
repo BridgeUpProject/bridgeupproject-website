@@ -191,6 +191,7 @@
   var scrambles = [];
   var mm        = gsap.matchMedia();
   var lenis     = null;
+  var lenisTick = null;
   var notes     = [];
 
   /* Sections with bespoke choreography opt out of the generic
@@ -365,7 +366,13 @@
     lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.12 });
     window.__BU_LENIS__ = lenis;
     lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+    /* Held in a variable so neutralize() can actually unregister it.
+       An anonymous callback here could only ever be orphaned: it
+       closes over `lenis`, neutralize() sets that to null, and the
+       ticker goes on invoking it every frame against null. The
+       guard makes the frame harmless, removing it makes it stop. */
+    lenisTick = function (time) { if (lenis) lenis.raf(time * 1000); };
+    gsap.ticker.add(lenisTick);
     gsap.ticker.lagSmoothing(0);
   }
 
@@ -1060,6 +1067,7 @@
     counters.forEach(function (c) { c.el.textContent = c.text; });
     scrambles.forEach(function (s) { s.el.textContent = s.text; });
     mm.revert();
+    if (lenisTick) { gsap.ticker.remove(lenisTick); lenisTick = null; }
     if (lenis) { lenis.destroy(); lenis = null; }
     constellation.freeze();
     notes.forEach(function (n) { try { n.remove(); } catch (e) {} });
