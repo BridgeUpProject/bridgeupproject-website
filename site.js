@@ -15,7 +15,27 @@
   var motionQuery  = window.matchMedia('(prefers-reduced-motion: reduce)');
   var reduceMotion = motionQuery.matches;
 
+  /* GSAP handoff. motion.js (loaded just before this file) sets
+     __BU_MOTION_OK__ once the GSAP engine owns the page. If the
+     <html> gsap class is present without that flag, a vendor
+     script failed to load — drop the class so the CSS transition
+     system comes back, and run the legacy engine below as usual.
+     Sections 1–4 (measure, word split, reveal, scroll engine)
+     are motion and belong to whichever engine is active;
+     sections 5–6 (menu, anchors) are interaction and always run. */
+  var gsapMode = document.documentElement.classList.contains('gsap');
+  if (gsapMode && !window.__BU_MOTION_OK__) {
+    document.documentElement.classList.remove('gsap');
+    gsapMode = false;
+  }
+
   var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
+
+  if (!gsapMode) {
+
+  /* Tell the inline head failsafe an engine owns the page, so it
+     never strips the .js gate out from under a running reveal. */
+  window.__BU_LEGACY_OK__ = true;
 
   /* ----------------------------------------------------------
      1. Measure the bridge span so the draw-in ends exactly on
@@ -302,6 +322,8 @@
     motionQuery.addListener(onMotionChange);
   }
 
+  } /* end !gsapMode — legacy motion engine */
+
   /* ----------------------------------------------------------
      5. Dropdown dismissal. A <details> menu that only closes by
         clicking its own summary is a trap — wire up outside
@@ -335,7 +357,9 @@
       var target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      /* Read the live value: the listener that refreshes reduceMotion
+         belongs to the legacy engine and is absent in gsap mode. */
+      target.scrollIntoView({ behavior: motionQuery.matches ? 'auto' : 'smooth', block: 'start' });
       history.replaceState(null, '', id);
     });
   });

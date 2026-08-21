@@ -94,7 +94,22 @@
 <meta property="og:image:alt" content="AI Pathways — the eight-week program from The Bridge Up Project">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/site.css">
-<script>document.documentElement.classList.add('js');</script>
+<script>
+document.documentElement.classList.add('js','gsap');
+/* Failsafe: if no motion engine has claimed the page (stalled or
+   failed script downloads), return it to plain readable HTML. */
+window.setTimeout(function(){
+  if (!window.__BU_MOTION_OK__ && !window.__BU_LEGACY_OK__) {
+    document.documentElement.classList.remove('js','gsap');
+  }
+}, 4000);
+</script>
+<script src="/vendor/gsap.min.js" defer></script>
+<script src="/vendor/ScrollTrigger.min.js" defer></script>
+<script src="/vendor/SplitText.min.js" defer></script>
+<script src="/vendor/DrawSVGPlugin.min.js" defer></script>
+<script src="/vendor/ScrambleTextPlugin.min.js" defer></script>
+<script src="/motion.js" defer></script>
 <script src="/site.js" defer></script>
 </head>
 <body>

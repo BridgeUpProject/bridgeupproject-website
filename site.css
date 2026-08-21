@@ -309,7 +309,7 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
    ============================================================ */
 .program-visual svg [class^="arc-"]{ transform-box: fill-box; }
 
-.js .program-visual .arc-pillar{
+.js:not(.gsap) .program-visual .arc-pillar{
   transform-origin: bottom center;
   transform: scaleY(0.2);
   opacity: 0;
@@ -317,10 +317,10 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
     transform 520ms var(--ease-out),
     opacity   320ms var(--ease-out);
 }
-.js .program-visual .arc-pillar-l{ transition-delay: 120ms; }
-.js .program-visual .arc-pillar-r{ transition-delay: 200ms; }
+.js:not(.gsap) .program-visual .arc-pillar-l{ transition-delay: 120ms; }
+.js:not(.gsap) .program-visual .arc-pillar-r{ transition-delay: 200ms; }
 
-.js .program-visual .arc-deck{
+.js:not(.gsap) .program-visual .arc-deck{
   transform-origin: center;
   transform: scaleX(0.25);
   opacity: 0;
@@ -329,14 +329,14 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
     opacity   320ms var(--ease-out) 300ms;
 }
 
-.js .program-visual .arc-span{
+.js:not(.gsap) .program-visual .arc-span{
   /* --arc-len is measured at runtime via getTotalLength() */
   stroke-dasharray: var(--arc-len, 240);
   stroke-dashoffset: var(--arc-len, 240);
   transition: stroke-dashoffset 1100ms var(--ease-in-out) 560ms;
 }
 
-.js .program-visual .arc-key{
+.js:not(.gsap) .program-visual .arc-key{
   transform-origin: center;
   transform: scale(0.6);
   opacity: 0;
@@ -345,10 +345,10 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
     opacity   300ms var(--ease-out) 1450ms;
 }
 
-.js .program-visual.is-visible .arc-pillar{ transform: scaleY(1); opacity: 1; }
-.js .program-visual.is-visible .arc-deck{   transform: scaleX(1); opacity: 1; }
-.js .program-visual.is-visible .arc-span{   stroke-dashoffset: 0; }
-.js .program-visual.is-visible .arc-key{    transform: scale(1); opacity: 1; }
+.js:not(.gsap) .program-visual.is-visible .arc-pillar{ transform: scaleY(1); opacity: 1; }
+.js:not(.gsap) .program-visual.is-visible .arc-deck{   transform: scaleX(1); opacity: 1; }
+.js:not(.gsap) .program-visual.is-visible .arc-span{   stroke-dashoffset: 0; }
+.js:not(.gsap) .program-visual.is-visible .arc-key{    transform: scale(1); opacity: 1; }
 
 /* ============================================================
    FOOTER
@@ -428,17 +428,17 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
 
   .mission .section-inner::before{ transform: scaleX(1); transition: none; }
 
-  .js .program-visual .arc-pillar,
-  .js .program-visual .arc-deck,
-  .js .program-visual .arc-key{
+  .js:not(.gsap) .program-visual .arc-pillar,
+  .js:not(.gsap) .program-visual .arc-deck,
+  .js:not(.gsap) .program-visual .arc-key{
     transform: none;
     opacity: 0;
     transition: opacity 300ms ease;
   }
-  .js .program-visual .arc-span{ stroke-dashoffset: 0; transition: none; }
-  .js .program-visual.is-visible .arc-pillar,
-  .js .program-visual.is-visible .arc-deck,
-  .js .program-visual.is-visible .arc-key{ opacity: 1; }
+  .js:not(.gsap) .program-visual .arc-span{ stroke-dashoffset: 0; transition: none; }
+  .js:not(.gsap) .program-visual.is-visible .arc-pillar,
+  .js:not(.gsap) .program-visual.is-visible .arc-deck,
+  .js:not(.gsap) .program-visual.is-visible .arc-key{ opacity: 1; }
 }
 
 /* ============================================================
@@ -966,3 +966,74 @@ section,
   border-radius: var(--r-tray);
   padding: 8px;                       /* 16 - 8 = 8, truly concentric */
 }
+
+/* ============================================================
+   TIER 5 — GSAP engine handoff
+   html.gsap is set inline in <head> and confirmed by motion.js
+   (site.js removes it if the engine never initialised). While
+   active, GSAP owns every animated property, so the CSS
+   transition system stands down: initial hidden states stay
+   (they prevent FOUC before the deferred scripts run), but
+   nothing transitions — GSAP tweens from those states instead.
+   ============================================================ */
+
+/* Reveal targets keep their hidden state, lose their transitions */
+.gsap [data-reveal]{ transition: none !important; }
+
+/* GSAP owns the card blur-in: the CSS resting blur must not
+   resurface when the tween clears its inline filter on complete */
+.gsap [data-reveal].reveal-card{ filter: none; }
+
+/* Headlines hide untouched until SplitText has rebuilt them */
+.gsap [data-words]{ visibility: hidden; }
+
+/* Mission hairline: driven by a CSS variable GSAP animates */
+.gsap .mission .section-inner::before{
+  transition: none;
+  transform: scaleX(var(--rule, 0));
+}
+
+/* Bridge visual: in gsap mode the legacy .js rules above are
+   scoped out with :not(.gsap) rather than overridden here —
+   GSAP animates these SVG nodes via the transform ATTRIBUTE,
+   and any CSS transform declaration (even `none`) would win
+   over the attribute and freeze the build. */
+
+/* Buttons: on fine pointers the magnetic system owns transform,
+   so the CSS hover lift retires to avoid a first-hover jump.
+   Width-gated to match the matchMedia condition in motion.js —
+   below 761px the magnet is off and CSS keeps hover feedback. */
+@media (min-width: 761px) and (hover: hover) and (pointer: fine){
+  .gsap .btn-primary:hover,
+  .gsap .btn-secondary:hover,
+  .gsap .path-card:hover{ transform: none; }
+}
+
+/* Gold progress rail, scrubbed to page scroll by motion.js */
+.scroll-progress{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), #F6D876);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 90;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce){
+  .scroll-progress{ display: none; }
+}
+
+/* Kill switch: if the visitor turns on reduced motion while the
+   GSAP engine is live, motion.js adds gsap-off after clearing its
+   inline styles, and this forces everything readable. */
+.gsap.gsap-off [data-reveal],
+.gsap.gsap-off .hero-inner{
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  visibility: visible !important;
+}
+.gsap.gsap-off [data-words]{ visibility: visible !important; }
+/* clearProps strips the inline --rule, so force the hairline in */
+.gsap.gsap-off .mission .section-inner::before{ transform: scaleX(1); }
