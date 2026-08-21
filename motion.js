@@ -1,7 +1,10 @@
 /* ============================================================
-   The Bridge Up Project — GSAP motion engine
-   Loads after the self-hosted GSAP bundles (see /vendor) and
-   before site.js. When every library is present and the visitor
+   The Bridge Up Project — motion engine
+   Loads after the self-hosted animation bundles (see /vendor:
+   GSAP + plugins, Motion's WAAPI `animate`, anime.js) and
+   before site.js. GSAP is required; Motion and anime.js are
+   feature-detected and only enrich the CTA choreography.
+   When every library is present and the visitor
    has not asked for reduced motion, this file owns all motion on
    the site and site.js keeps only its interaction plumbing
    (menu, anchors). In every other case the <html> "gsap" class
@@ -10,8 +13,13 @@
 
    Choreography map:
      all pages   nav bridge draws itself · gold scroll-progress
-                 rail · batched blur/lift reveals · magnetic CTAs
-                 · 3D card tilt (fine pointers only)
+                 rail · batched blur/lift reveals · 3D card tilt
+                 (fine pointers only)
+     CTAs        primary buttons ripple their label outward from
+                 the letter the cursor arrived over; the secondary
+                 button completes a border circuit. The anchor itself
+                 never moves — see the block in initFinePointer for
+                 why that matters.
      home        hero: glows breathe, arcline draws, eyebrow
                  de-scrambles, headline enters as masked lines ·
                  stat counters count up · mission statement inks
@@ -467,37 +475,316 @@
   function initFinePointer() {
     mm.add('(min-width: 761px) and (hover: hover) and (pointer: fine)', function () {
       var handlers = [];
+      var ctas     = [];
       var on = function (el, type, fn) {
         el.addEventListener(type, fn);
         handlers.push([el, type, fn]);
       };
 
-      /* Magnetic buttons — they lean toward the cursor and snap
-         back with an elastic release. */
+      /* ------------------------------------------------------
+         CTA choreography — replaces the magnetic buttons.
+
+         The magnet translated the <a> toward the cursor. Near an
+         edge the element slid out from under the pointer, fired
+         mouseleave, launched a 0.9s elastic snap-back, slid back
+         under the pointer and fired mouseenter mid-flight. That
+         oscillation was the "glitch". It also read the button's
+         rect inside every mousemove, forcing a synchronous layout
+         flush 60+ times a second, and CSS still carried a
+         `transition: transform` that re-interpolated every value
+         GSAP wrote — so the motion was smoothed twice and lagged
+         the cursor. That was the "lag".
+
+         So: the anchor never transforms. Every animated layer
+         lives inside it, is pointer-events:none, and touches only
+         transform / opacity. The hit box is stable to the pixel,
+         which makes the whole failure mode unreachable.
+
+         Work is split by what each library is genuinely best at:
+           GSAP   — the continuous, interruptible cursor follow
+                    (quickTo; no layout reads per frame)
+           Motion — one-shot enter/leave flourishes through the Web
+                    Animations API, which the compositor can run
+                    off the main thread even while ScrollTrigger is
+                    mid-scrub
+           anime  — staggered per-character choreography and the
+                    CSS-variable tween that drives the border trace
+         ------------------------------------------------------ */
+      var MOTION = (window.Motion && window.Motion.animate) ? window.Motion : null;
+      var ANIME  = (window.anime  && window.anime.animate)  ? window.anime  : null;
+      var SVGNS  = 'http://www.w3.org/2000/svg';
+      var EASE_OUT = [0.23, 1, 0.32, 1];
+      var EASE_IN  = [0.4, 0, 1, 1];
+      var EASE_BACK = [0.34, 1.4, 0.64, 1];
+
+      function mk(cls, tag) {
+        var n = document.createElement(tag || 'span');
+        n.className = cls;
+        return n;
+      }
+      function svgNode(name, attrs) {
+        var n = document.createElementNS(SVGNS, name), k;
+        for (k in attrs) { if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]); }
+        return n;
+      }
+
+      /* WAAPI, with the destination also pinned to the inline style
+         so the resting state never depends on a fill mode — and so
+         the effect degrades to an instant set if Motion is absent. */
+      function waapi(node, from, to, opts) {
+        var kf = {}, k;
+        for (k in to) {
+          if (!to.hasOwnProperty(k)) continue;
+          node.style[k] = to[k];
+          kf[k] = [from[k], to[k]];
+        }
+        if (MOTION) MOTION.animate(node, kf, opts);
+      }
+
+      /* One shared frame loop for cursor tracking. Pointer handlers
+         record clientX and nothing else — no rect reads, no style
+         writes — and the value is flushed once per frame. A 1000Hz
+         mouse therefore costs exactly what a 125Hz one does. */
+      var hot = [], ticking = false;
+      function frame() {
+        for (var i = 0; i < hot.length; i++) {
+          var c = hot[i];
+          if (c.x === c.sent) continue;
+          c.sent = c.x;
+          c.glowTo(c.x);
+        }
+      }
+      function warm(c) {
+        if (hot.indexOf(c) !== -1) return;
+        hot.push(c);
+        if (!ticking) { gsap.ticker.add(frame); ticking = true; }
+      }
+      function cool(c) {
+        var i = hot.indexOf(c);
+        if (i !== -1) hot.splice(i, 1);
+        if (!hot.length && ticking) { gsap.ticker.remove(frame); ticking = false; }
+      }
+
+      /* ---------- structure ---------- */
+      function buildCTA(btn) {
+        var c = {
+          btn: btn,
+          primary: btn.classList.contains('btn-primary'),
+          html: btn.innerHTML,          /* for teardown */
+          x: 0, sent: -1, w: 0,
+          hover: false, focus: false, on: false
+        };
+
+        var icon = btn.querySelector('.btn-icon');
+        if (icon) icon.parentNode.removeChild(icon);
+
+        var label = mk('cta-label');
+        while (btn.firstChild) label.appendChild(btn.firstChild);
+
+        var inner = mk('cta-inner');
+        inner.appendChild(label);
+        if (icon) inner.appendChild(icon);
+
+        var fx = mk('cta-fx');
+        fx.setAttribute('aria-hidden', 'true');
+        var glow = mk('cta-glow');
+
+        c.inner = inner;
+        c.glow  = glow;
+        c.icon  = icon;
+
+        if (!c.primary) {
+          /* Two tracers leave the top edge in opposite directions
+             and meet at the bottom — the circuit completing. The
+             paths are exact mirrors, so they always meet dead
+             centre no matter how the viewBox is stretched.
+             pathLength=100 normalises the perimeter, which is what
+             lets one unitless --trace value drive any width. */
+          c.wash = mk('cta-wash');
+          var circuit = svgNode('svg', {
+            'class': 'cta-circuit', viewBox: '0 0 100 100', preserveAspectRatio: 'none'
+          });
+          c.traces = [
+            svgNode('path', { 'class': 'cta-trace', pathLength: '100', d: 'M 50 0 H 100 V 100 H 0 V 0 H 50' }),
+            svgNode('path', { 'class': 'cta-trace', pathLength: '100', d: 'M 50 0 H 0 V 100 H 100 V 0 H 50' })
+          ];
+          c.traces.forEach(function (t) { circuit.appendChild(t); });
+          fx.appendChild(c.wash);
+          fx.appendChild(circuit);
+        }
+
+        fx.appendChild(glow);
+        btn.appendChild(fx);
+        btn.appendChild(inner);
+        btn.classList.add('cta');
+
+        /* Split for the per-character stagger. SplitText handles the
+           aria restoration; anime.js does the choreography. */
+        if (ANIME) {
+          try {
+            c.split = SplitText.create(label, { type: 'chars', charsClass: 'cta-char', aria: 'auto' });
+            c.chars = c.split.chars;
+            splits.push(c.split);
+            /* Cache each character's centre once, here, so the ripple
+               can start at whichever letter the cursor arrived over
+               without ever measuring again. offsetLeft resolves
+               against .cta (position:relative), the same origin the
+               pointer maths uses. */
+            c.charX = c.chars.map(function (ch) {
+              return ch.offsetLeft + ch.offsetWidth / 2;
+            });
+          } catch (e) { c.chars = null; }
+        }
+
+        c.glowTo = gsap.quickTo(glow, 'x', { duration: 0.4, ease: 'power3.out' });
+        return c;
+      }
+
+      /* ---------- states ---------- */
+
+      /* The wave starts at the letter nearest the cursor rather than
+         always at the middle, so entering from the left ripples left
+         to right and entering from the right does the opposite. Uses
+         the cached centres and the pointer x we already have, so it
+         costs no measurement. */
+      function rippleOrigin(c) {
+        if (!c.charX || !c.charX.length) return 'center';
+        var best = 0, bestD = Infinity, i, d;
+        for (i = 0; i < c.charX.length; i++) {
+          d = Math.abs(c.charX[i] - c.x);
+          if (d < bestD) { bestD = d; best = i; }
+        }
+        return best;
+      }
+
+      function ctaEnter(c, clientX) {
+        var r = c.btn.getBoundingClientRect();   /* one read, once per hover */
+        c.w = r.width;
+        c.x = (clientX == null) ? r.width / 2 : clientX - r.left;
+        c.left = r.left;
+        c.sent = -1;
+        c.glow.style.willChange = 'transform, opacity';
+        c.inner.style.willChange = 'transform';
+        warm(c);
+
+        gsap.to(c.glow, { opacity: 1, scale: 1, duration: 0.34, ease: 'power2.out' });
+
+        if (c.icon) {
+          waapi(c.icon, { transform: 'translate3d(0,0,0) scale(1)' },
+                        { transform: 'translate3d(4px,-1px,0) scale(1.09)' },
+                { duration: 0.36, ease: EASE_BACK });
+        }
+        if (c.wash) {
+          /* The wash enters from whichever edge the pointer crossed. */
+          c.washFromLeft = c.x < c.w / 2;
+          c.wash.style.transformOrigin = c.washFromLeft ? '0% 50%' : '100% 50%';
+          waapi(c.wash, { transform: 'scaleX(0)' }, { transform: 'scaleX(1)' },
+                { duration: 0.44, ease: EASE_OUT });
+        }
+        if (c.traces && ANIME) {
+          ANIME.animate(c.traces, {
+            /* 50 is exactly half the normalised perimeter; the extra
+               0.5 lets the two tracers overlap at the bottom instead
+               of racing to a shared endpoint they can only approach. */
+            '--trace': 50.5,
+            duration: 580,
+            ease: 'outQuart',
+            delay: ANIME.stagger(55)
+          });
+        }
+        if (c.chars && ANIME) {
+          /* Lift, then settle on a spring. The stagger is what turns
+             23 independent letter tweens into one travelling wave —
+             slow enough to read as a wave, short enough that the
+             whole label has settled well before anyone finishes
+             moving onto the button. */
+          ANIME.animate(c.chars, {
+            translateY: [
+              { to: -5, duration: 190, ease: 'outQuad' },
+              { to: 0,  duration: 620, ease: 'outElastic(1, .5)' }
+            ],
+            delay: ANIME.stagger(19, { from: rippleOrigin(c) })
+          });
+        }
+      }
+
+      function ctaLeave(c) {
+        cool(c);
+        gsap.to(c.glow, { opacity: 0, scale: 0.6, duration: 0.32, ease: 'power2.out' });
+
+        if (c.icon) {
+          waapi(c.icon, { transform: 'translate3d(4px,-1px,0) scale(1.09)' },
+                        { transform: 'translate3d(0,0,0) scale(1)' },
+                { duration: 0.3, ease: EASE_OUT });
+        }
+        if (c.wash) {
+          /* Flip the origin so the wash sweeps out of the far edge
+             rather than retracting the way it came — it reads as
+             light passing through instead of a rewind. */
+          c.wash.style.transformOrigin = c.washFromLeft ? '100% 50%' : '0% 50%';
+          waapi(c.wash, { transform: 'scaleX(1)' }, { transform: 'scaleX(0)' },
+                { duration: 0.34, ease: EASE_IN });
+        }
+        if (c.traces && ANIME) {
+          ANIME.animate(c.traces, { '--trace': 0, duration: 320, ease: 'inQuad' });
+        }
+        if (c.chars && ANIME) {
+          /* A shallower echo of the entrance, running from the same
+             origin, so the label subsides instead of simply stopping. */
+          ANIME.animate(c.chars, {
+            translateY: [
+              { to: 2, duration: 150, ease: 'outQuad' },
+              { to: 0, duration: 380, ease: 'outQuad' }
+            ],
+            delay: ANIME.stagger(14, { from: rippleOrigin(c) })
+          });
+        }
+        window.setTimeout(function () {
+          if (c.on) return;
+          c.glow.style.willChange = '';
+          c.inner.style.willChange = '';
+        }, 420);
+      }
+
       qa('.btn-primary, .btn-secondary').forEach(function (btn) {
-        var xTo = gsap.quickTo(btn, 'x', { duration: 0.35, ease: 'power3.out' });
-        var yTo = gsap.quickTo(btn, 'y', { duration: 0.35, ease: 'power3.out' });
-        on(btn, 'mousemove', function (e) {
-          var r = btn.getBoundingClientRect();
-          xTo((e.clientX - (r.left + r.width / 2)) * 0.32);
-          yTo((e.clientY - (r.top + r.height / 2)) * 0.32);
+        var c = buildCTA(btn);
+        ctas.push(c);
+
+        function sync(clientX) {
+          if (c.hover || c.focus) {
+            if (!c.on) { c.on = true; ctaEnter(c, clientX); }
+          } else if (c.on) {
+            c.on = false; ctaLeave(c);
+          }
+        }
+
+        on(btn, 'pointerenter', function (e) {
+          if (e.pointerType === 'touch') return;
+          c.hover = true; sync(e.clientX);
         });
-        on(btn, 'mouseenter', function () {
-          gsap.to(btn, { scale: 1.04, duration: 0.3 });
+        on(btn, 'pointerleave', function () { c.hover = false; sync(); });
+
+        /* The only work done per pointer event. */
+        on(btn, 'pointermove', function (e) { c.x = e.clientX - c.left; });
+
+        /* Press feedback lives on the inner wrapper, so the anchor's
+           box — and therefore the hit test — is untouched. */
+        on(btn, 'pointerdown', function () {
+          waapi(c.inner, { transform: 'scale(1)' }, { transform: 'scale(0.955)' },
+                { duration: 0.12, ease: EASE_IN });
         });
-        on(btn, 'mouseleave', function () {
-          xTo(0);
-          yTo(0);
-          gsap.to(btn, { scale: 1, duration: 0.9, ease: 'elastic.out(1, 0.4)' });
+        var release = function () {
+          waapi(c.inner, { transform: 'scale(0.955)' }, { transform: 'scale(1)' },
+                { duration: 0.42, ease: EASE_BACK });
+        };
+        on(btn, 'pointerup', release);
+        on(btn, 'pointercancel', release);
+
+        /* Keyboard parity: the same choreography on focus-visible. */
+        on(btn, 'focus', function () {
+          if (btn.matches && btn.matches(':focus-visible')) { c.focus = true; sync(null); }
         });
-        /* The inline transform the magnet writes overrides the CSS
-           :active press feedback, so replicate it here. */
-        on(btn, 'mousedown', function () {
-          gsap.to(btn, { scale: 0.97, duration: 0.14, ease: 'power3.out' });
-        });
-        on(btn, 'mouseup', function () {
-          gsap.to(btn, { scale: 1.04, duration: 0.2, ease: 'power3.out' });
-        });
+        on(btn, 'blur', function () { c.focus = false; sync(); });
       });
 
       /* Cards tip subtly toward the cursor. */
@@ -537,8 +824,24 @@
 
       return function () {
         handlers.forEach(function (h) { h[0].removeEventListener(h[1], h[2]); });
-        gsap.set(qa('.btn-primary, .btn-secondary, .path-card, .session-card, .stat-card'), {
-          clearProps: 'x,y,scale,rotationX,rotationY,transformPerspective'
+        if (ticking) { gsap.ticker.remove(frame); ticking = false; }
+        hot.length = 0;
+        /* Restore the CTAs to their authored markup. Reverting the
+           split alone is not enough: the injected fx/inner wrappers
+           have to go too, so the fallback engine in site.js finds
+           exactly the DOM it was written against. */
+        ctas.forEach(function (c) {
+          if (c.split) {
+            try { c.split.revert(); } catch (e) {}
+            var i = splits.indexOf(c.split);
+            if (i !== -1) splits.splice(i, 1);
+          }
+          c.btn.classList.remove('cta');
+          c.btn.innerHTML = c.html;
+        });
+        ctas.length = 0;
+        gsap.set(qa('.path-card, .session-card, .stat-card'), {
+          clearProps: 'rotationX,rotationY,transformPerspective'
         });
       };
     });

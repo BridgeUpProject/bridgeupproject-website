@@ -1037,3 +1037,132 @@ section,
 .gsap.gsap-off [data-words]{ visibility: visible !important; }
 /* clearProps strips the inline --rule, so force the hairline in */
 .gsap.gsap-off .mission .section-inner::before{ transform: scaleX(1); }
+
+/* ============================================================
+   CTA CHOREOGRAPHY — "Span" (primary) and "Circuit" (secondary)
+   Replaces the magnetic-button system.
+
+   One rule governs the whole thing: THE HIT TARGET NEVER MOVES.
+   The old magnet translated the <a> toward the cursor, so near an
+   edge the element slid out from under the pointer, fired
+   mouseleave, started an elastic snap-back, slid under the
+   pointer again and fired mouseenter mid-flight. That oscillation
+   was the "glitch". Every layer below is injected INSIDE the
+   anchor, is pointer-events:none, and only ever touches transform
+   or opacity — so the anchor's box is stable to the pixel and the
+   compositor does the work.
+   ============================================================ */
+
+.cta{
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Decorative stack. Out of flow, so it cannot affect the flex
+   layout (or the `gap`) of .btn-arrow. */
+.cta-fx{
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Label + icon ride above the effects and own the press scale,
+   so the anchor itself is never scaled out from under the cursor. */
+.cta-inner{
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  transform: translateZ(0);
+}
+.btn-arrow .cta-inner{ gap: 14px; }
+
+/* The split target. Kept out of the flex context so SplitText's
+   characters never become flex items and reflow the label. */
+.cta-label{ display: inline-block; }
+
+/* Per-character wrapper produced by SplitText. anime.js staggers a
+   translateY across these on hover, which is what reads as a wave
+   travelling out from the letter the cursor arrived over. Only
+   transform is touched, so each character stays on the compositor. */
+.cta-char{ display: inline-block; will-change: transform; }
+
+/* Once the engine claims a button, JS owns the icon outright: a CSS
+   transition here would re-interpolate every value WAAPI commits,
+   which is the exact double-smoothing that made the old magnet lag. */
+.cta .btn-icon{ transition: none; }
+.cta.btn-arrow:hover .btn-icon{ transform: none; }
+
+/* ---------- Cursor-tracked light (GSAP, transform only) ---------- */
+.cta-glow{
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.6);
+}
+.btn-primary .cta-glow{
+  background: radial-gradient(circle closest-side, rgba(255,255,255,0.55), rgba(255,255,255,0) 72%);
+}
+.btn-secondary .cta-glow{
+  background: radial-gradient(circle closest-side, rgba(233,190,63,0.42), rgba(233,190,63,0) 70%);
+}
+
+/* ---------- SECONDARY: the circuit completes ---------- */
+.cta-circuit{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cta-trace{
+  fill: none;
+  stroke: var(--gold, #E9BE3F);
+  /* The path sits on the viewBox edge and .cta-fx clips the outer
+     half of the stroke, so 3 renders as a 1.5px inner tracer. */
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  /* pathLength=100 normalises the perimeter, so --trace reads as a
+     percentage of half the border regardless of button width.
+     The initial value must be declared, not defaulted, or anime.js
+     has no current value to tween from. */
+  --trace: 0;
+  stroke-dasharray: var(--trace) 100;
+}
+.cta-wash{
+  position: absolute;
+  inset: 0;
+  background: rgba(233, 190, 63, 0.16);
+  transform: scaleX(0);
+  transform-origin: 0% 50%;   /* JS flips this to the pointer's entry edge */
+}
+
+/* Resting state for the buttons the engine has claimed. The old
+   translateY(-2px) hover is replaced by the choreography above;
+   crucially the `transform` transition is gone, because the
+   browser re-interpolating GSAP's per-frame transform writes over
+   another 140ms was what made the magnet swim behind the cursor. */
+.cta{
+  transition:
+    box-shadow   var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) ease;
+}
+@media (hover: hover) and (pointer: fine){
+  .cta.btn-primary:hover{ transform: none; box-shadow: var(--shadow-lift); }
+  .cta.btn-secondary:hover{ transform: none; border-color: var(--gold); }
+}
+.cta.btn-primary:active,
+.cta.btn-secondary:active{ transform: none; }
+
+@media (prefers-reduced-motion: reduce){
+  .cta-fx{ display: none; }
+}

@@ -54,6 +54,32 @@ This is a deliberate structure: Programs is on-page/primary content, About and C
 
 All four pages include a viewport meta tag and a mobile breakpoint at 760px. Below that width: multi-column grids (stats, session cards, Connect path cards) collapse to a single column, the nav bar's link spacing tightens, and section padding is reduced so pages don't feel overly tall on a phone screen. This has been tested on an actual phone browser, not just assumed from the CSS.
 
+## Animation libraries (`vendor/`)
+
+Everything in `vendor/` is self-hosted — no CDN at runtime. GSAP and its
+plugins ship as-is from the `gsap` package. The other two are tree-shaken
+IIFE bundles built from npm, so regenerate them with esbuild if the
+dependency is ever bumped:
+
+```
+npx esbuild --bundle --format=iife --minify \
+  --global-name=Motion --outfile=vendor/motion-mini.min.js <(echo 'export { animate } from "motion/mini"')
+npx esbuild --bundle --format=iife --minify \
+  --global-name=anime --outfile=vendor/anime.min.js <(echo 'export { animate, createTimeline, stagger, utils } from "animejs"')
+```
+
+(esbuild needs the entry file inside the project so `node_modules` resolves;
+write it to a temp file in the repo root rather than using `/tmp`.)
+
+`motion/mini` is the Web Animations API-only entry point — 3.3 KB gzipped
+against ~40 KB for the full `motion` package — and it is the right build
+here because the CTA choreography only ever needs fire-and-forget WAAPI
+tweens, which the compositor can run off the main thread. Only `index.html`
+and `connect.html` load these two; the other pages have no CTA buttons.
+
+GSAP is required. Motion and anime.js are feature-detected in `motion.js`,
+so a failed download degrades the CTA choreography rather than the page.
+
 ## Known open items (not fixed by this mockup)
 
 - Email addresses on the Connect page (`info@`, `volunteer@`, `tyson@bridgeupproject.org`) are not yet live inboxes — need to be set up before launch.
