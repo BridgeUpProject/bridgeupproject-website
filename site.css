@@ -1166,3 +1166,122 @@ section,
 @media (prefers-reduced-motion: reduce){
   .cta-fx{ display: none; }
 }
+
+/* ============================================================
+   TIER 6 — CROSS-DEVICE FIDELITY
+   One design, every screen.
+
+   THE BUG THIS FIXES. The display scale was half fluid and half
+   fixed. These shrink with the viewport:
+
+     .hero h1        clamp(1.85rem, 6.6vw, 3.4rem)   54.4 → 29.6
+     .page-header h1 clamp(1.7rem,  5.4vw, 2.8rem)   44.8 → 27.2
+     .mission h2     clamp(1.8rem,  3vw,   2.4rem)   38.4 → 28.8
+
+   while these are plain rem in the per-page <style> blocks and
+   never move at all:
+
+     .stat-number    2.6rem   41.6 at every width
+     .program h3     2rem     32   at every width
+     .cta-strip h2   2.1rem   33.6 at every width
+
+   On a laptop that reads correctly, because the fixed sizes
+   happen to land below the hero. On a 390px phone the hero has
+   dropped to 29.6 while they have not moved, so the ordering
+   INVERTS: the section heading (32) outranks the page headline
+   (29.6), and the stat figures (41.6) outrank both. Nothing is
+   broken or overflowing — the hierarchy is simply upside down,
+   which is what made the phone read as a different site.
+
+   THE FIX. Every display role gets one continuous ramp between
+   a phone size at 390px and its CURRENT laptop size at 1440px.
+   Two consequences worth stating:
+
+   1. At >=1440px every value below equals the size already
+      shipping, so the laptop rendering is unchanged. This tier
+      only ever acts below 1440.
+   2. The scale is COMPRESSED on phones, not scaled. Scaling the
+      laptop ratios linearly would put card titles at 11px and
+      the eyebrow at 7px — type has a legibility floor that does
+      not scale. Compressing keeps the ORDER identical and just
+      narrows the gaps between steps:
+
+        role              390px     1440px
+        stat lead #        38        70.4
+        hero h1            29.6      54.4
+        page-header h1     27.2      44.8
+        stat other #       26        41.6
+        mission h2         24        38.4
+        cta-strip h2       23        33.6
+        program h3         22        32
+        card h3            18        20.8
+        eyebrow            11.7      12.8
+
+   Each ramp is clamp(phone, intercept + coefficient*vw, laptop),
+   solved so the middle term passes through both anchor points.
+   ============================================================ */
+
+/* ---------- Display scale ----------
+
+   Every role below ramps between the SAME two anchors, 390px and
+   1440px. That is what makes the ordering safe: straight lines
+   sharing endpoints, with both endpoint sets strictly ordered,
+   interpolate in parallel and cannot cross at any width in
+   between. Ordering stops being something to spot-check at a few
+   sample widths and becomes a property of the maths.
+
+   This is also why the two headline roles are re-expressed here
+   rather than left alone. Their old ramps — 6.6vw and 5.4vw —
+   run through the ORIGIN, not through these anchors, which makes
+   them piecewise: flat below ~448px, very steep through the
+   middle, flat again above ~824px. A ramp of a different shape
+   crosses the straight ones even when both of its endpoints are
+   correctly ordered, and at 768px it did exactly that — the hero
+   headline reached 50.7px while the lead figure that is supposed
+   to tower over it sat at 49.7px. Re-anchoring keeps both of
+   their endpoints exactly where they already were (29.6/54.4 and
+   27.2/44.8) and only changes how they travel between them. */
+
+.stat-lead .stat-number{ font-size: clamp(38px, 25.97px + 3.086vw, 70.4px); }
+.hero h1{ font-size: clamp(29.6px, 20.39px + 2.362vw, 54.4px); }
+.page-header h1{ font-size: clamp(27.2px, 20.66px + 1.676vw, 44.8px); }
+
+/* Supporting figures — must sit below the headline, not above it */
+.stat-number{ font-size: clamp(26px, 20.21px + 1.486vw, 41.6px); }
+
+.mission h2{ font-size: clamp(24px, 18.65px + 1.371vw, 38.4px); }
+.cta-strip h2{ font-size: clamp(23px, 19.06px + 1.01vw, 33.6px); }
+.program h3{ font-size: clamp(22px, 18.29px + 0.952vw, 32px); }
+
+.session-card h3,
+.path-card h3{ font-size: clamp(18px, 16.96px + 0.267vw, 20.8px); }
+
+.eyebrow,
+.program-tag{ font-size: clamp(11.7px, 11.29px + 0.105vw, 12.8px); }
+
+/* The 480px override predates the ramp above and fought it: at
+   2.6rem the lead figure collapsed onto the same 41.6px as its
+   two supporting figures, flattening the one size relationship
+   the stats block is built on. The ramp handles this width. */
+@media (max-width: 480px){
+  .stat-lead .stat-number{ font-size: clamp(38px, 25.97px + 3.086vw, 70.4px); }
+}
+
+/* ---------- Layout fidelity ----------
+
+   CONTACT US, ONCE THE COLUMNS ARE GONE. On laptop .path-card--wide
+   spans both columns as a deliberately lighter strip: tighter
+   padding, translucent surface, no shadow. Against two solid peer
+   cards beside it, that reads as exactly what it is — the
+   secondary, catch-all route.
+
+   Below 760px .paths is a single column, so all three cards are
+   already the same width and the strip-vs-card contrast has
+   nothing left to express. What survives is only the leftovers of
+   it: a third card whose padding does not match the two above it,
+   which reads as a mistake rather than a hierarchy signal. The
+   padding returns to the peer value; the lighter surface stays,
+   since that still says "secondary" in a single column. */
+@media (max-width: 760px){
+  .path-card--wide{ padding: 34px 28px; }
+}

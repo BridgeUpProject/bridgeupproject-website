@@ -255,6 +255,40 @@
     el.id = 'hero-net';
     el.style.cssText = 'position:absolute;inset:0;';
     host.appendChild(el);
+    /* --------------------------------------------------------
+       Density has to be DERIVED, not fixed. The tuned look — 44
+       nodes linking at 160px — was measured in a 1440x539 hero:
+       one node per ~17,600 square px, and a link reach of ~1.2x
+       the mean spacing between nodes. Ship those same two
+       constants to a 390x409 phone hero and the area collapses
+       to a fifth while the count and the reach stay put, so
+       nearly every node comes within reach of every other and
+       the sparse constellation turns into a solid white mesh
+       sitting on top of the headline.
+
+       Holding node DENSITY constant instead overshoots the other
+       way — it works out to 9 nodes on a phone, which reads as
+       empty. So the count follows the hero's linear dimension
+       (the square root of the area ratio) and the link reach is
+       then re-derived from whatever spacing that count implies.
+       Both expressions return the current desktop numbers
+       exactly at 1440x539, so the laptop look is untouched.
+       -------------------------------------------------------- */
+    var REF_AREA  = 1440 * 539;   /* the hero the look was tuned in */
+    var REF_COUNT = 44;
+    var REACH     = 1.205;        /* link distance / mean node spacing */
+
+    function tune() {
+      var r = host.getBoundingClientRect();
+      var area  = Math.max(r.width * r.height, 1);
+      var count = Math.round(REF_COUNT * Math.sqrt(area / REF_AREA));
+      count = Math.min(52, Math.max(16, count));
+      var distance = Math.round(REACH * Math.sqrt(area / count));
+      return { count: count, distance: Math.min(175, Math.max(88, distance)) };
+    }
+
+    var t = tune();
+
     window.loadFull(tsParticles).then(function () {
       return tsParticles.load({ id: 'hero-net', options: {
       fullScreen: { enable: false },
@@ -262,19 +296,41 @@
       detectRetina: true,
       pauseOnOutsideViewport: true,
       particles: {
-        number: { value: 44, density: { enable: false } },
+        number: { value: t.count, density: { enable: false } },
         color: { value: ['#FAF8F4', '#FAF8F4', '#E9BE3F'] },
         opacity: { value: { min: 0.3, max: 0.7 } },
         size: { value: { min: 1.5, max: 3 } },
-        links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: 160, width: 1 },
+        links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: t.distance, width: 1 },
         move: { enable: true, speed: 0.55, direction: 'none', outModes: { default: 'out' } }
       },
       interactivity: {
         events: { onHover: { enable: true, mode: 'grab' }, resize: { enable: true } },
-        modes: { grab: { distance: 170, links: { opacity: 0.38 } } }
+        modes: { grab: { distance: Math.round(t.distance * 1.06), links: { opacity: 0.38 } } }
       }
       } });
-    }).then(function (c) { particles = c; });
+    }).then(function (c) {
+      particles = c;
+
+      /* A phone turning landscape more than doubles the hero's
+         area, which is precisely the case the derivation exists
+         for — so re-derive on resize instead of letting the
+         container stretch the old count over the new box. */
+      var applied = t.count + ':' + t.distance;
+      var timer   = 0;
+      window.addEventListener('resize', function () {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(function () {
+          if (!particles) return;
+          var n = tune();
+          var key = n.count + ':' + n.distance;
+          if (key === applied) return;
+          applied = key;
+          particles.options.particles.number.value   = n.count;
+          particles.options.particles.links.distance = n.distance;
+          particles.refresh();
+        }, 250);
+      });
+    });
   }
 
   /* ---------------- HOME: mission annotations ---------------- */
