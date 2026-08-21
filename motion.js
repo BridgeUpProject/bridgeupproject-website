@@ -37,27 +37,28 @@
   var reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ----------------------------------------------------------
-     Reduced motion is honoured on POINTER devices only.
+     Reduced motion is honoured NOWHERE. Every visitor gets the
+     full animated site regardless of their system setting.
 
-     Deliberate product decision, not an oversight: touch devices
-     keep the full animated experience even when the visitor has
-     Reduce Motion switched on, so a phone matches the laptop.
+     Requested, and the cost belongs in the code rather than only
+     in a chat log: Reduce Motion is switched on for vestibular
+     disorders, migraine and seizure triggers, where motion
+     produces physical symptoms - nausea, vertigo, headache -
+     rather than mild annoyance. Those visitors asked their
+     browser for less motion and this site declines.
 
-     Know what it trades away. Reduce Motion is enabled for
-     vestibular disorders, migraine and seizure triggers, where
-     motion produces real physical symptoms rather than mild
-     annoyance, and a phone is held close to the face, which is
-     where those symptoms are worst.
+     To restore the accessible behaviour, set this back to
+     `reduceQuery.matches` AND restore the five
+     prefers-reduced-motion blocks removed from site.css (see
+     TIER 8 there). The two layers must agree: CSS suppressing
+     motion the engine is still driving leaves elements frozen
+     part-way through their animation.
 
-     site.css gates its five prefers-reduced-motion blocks on this
-     SAME condition. The two must agree — if the CSS honours the
-     preference while this engine ignores it, the stylesheet
-     suppresses transitions GSAP is still driving. To honour it
-     everywhere (the accessible default), drop `&& finePointer
-     .matches` here and the trailing media condition there.
+     reduceQuery itself is still live below, because a mid-session
+     switch must not tear the page down any more.
      ---------------------------------------------------------- */
   var finePointer   = window.matchMedia('(hover: hover) and (pointer: fine)');
-  var honoursReduce = reduceQuery.matches && finePointer.matches;
+  var honoursReduce = false;
 
   var hasLibs = window.gsap && window.ScrollTrigger && window.SplitText &&
                 window.DrawSVGPlugin && window.ScrambleTextPlugin;
@@ -285,12 +286,23 @@
         delay: 1.5
       });
     });
+    /* Travel is scaled to the viewport rather than shipped as the
+       same pixel count everywhere. 220px and 160px were chosen
+       against a 1440x900 laptop; sent unchanged to a 390px phone
+       the horizontal ride becomes 18% of the screen width instead
+       of 5%, which does not read as the same effect scaled down,
+       it reads as a different, twitchier one. Each axis scales on
+       the dimension it actually travels along, with a floor so
+       the motion thins out rather than disappearing. Both factors
+       are exactly 1 at 1440x900, so the laptop is untouched. */
+    var fx = Math.min(1.1, Math.max(0.34, window.innerWidth  / 1440));
+    var fy = Math.min(1.1, Math.max(0.72, window.innerHeight /  900));
     qa('[data-parallax-y], [data-parallax-x]', container).forEach(function (el) {
       var sy = parseFloat(el.getAttribute('data-parallax-y')) || 0;
       var sx = parseFloat(el.getAttribute('data-parallax-x')) || 0;
       gsap.to(el, {
-        y: sy * 220,
-        x: sx * 160,
+        y: sy * 220 * fy,
+        x: sx * 160 * fx,
         ease: 'none',
         scrollTrigger: { trigger: container, start: 'top top', end: 'bottom top', scrub: 0.4 }
       });
@@ -371,6 +383,7 @@
     initSessionCards();
     initBio();
     initReveals();
+    initDrift();
     initFinePointer();
 
     ScrollTrigger.refresh();
@@ -682,9 +695,46 @@
   }
 
   /* ----------------------------------------------------------
-     Fine-pointer desktop layer: magnetic CTAs, 3D card tilt,
-     and column counter-drift. gsap.matchMedia reverts all of it
-     automatically when the viewport or input capability changes.
+     Column counter-drift — EVERY width, not just desktop.
+
+     It used to sit inside the fine-pointer block below, which
+     made it desktop-only, but it reads no pointer at all: it is
+     scrubbed to scroll. The gate was really about frame cost on
+     phones, and deriving the particle count paid that back.
+
+     The amplitude needs no viewport scaling the way parallax does
+     because yPercent is already relative to each child's own
+     height, so it adapts by construction. What does change on a
+     phone is the column count: the grids collapse to one column,
+     so `cols` becomes 1 and adjacent CARDS counter-drift where on
+     a laptop adjacent COLUMNS do. That is the same idea rendered
+     in the layout that is actually on screen.
+     ---------------------------------------------------------- */
+  function initDrift() {
+    qa('[data-drift]').forEach(function (host) {
+      var amp  = (parseFloat(host.getAttribute('data-drift')) || 10) * 0.25;
+      var axis = host.getAttribute('data-drift-axis') === 'column' ? 'column' : 'row';
+      var tpl  = window.getComputedStyle(host).gridTemplateColumns;
+      var cols = axis === 'column' ? 1 : (tpl && tpl !== 'none' ? tpl.split(/\s+/).filter(Boolean).length : 1);
+      qa(':scope > *', host).forEach(function (child, i) {
+        var unit = axis === 'column' ? i : Math.floor(i / Math.max(cols, 1));
+        var dir  = unit % 2 === 0 ? -1 : 1;
+        gsap.fromTo(child, { yPercent: dir * amp }, {
+          yPercent: dir * -amp,
+          ease: 'none',
+          scrollTrigger: { trigger: host, start: 'top bottom', end: 'bottom top', scrub: 0.5 }
+        });
+      });
+    });
+  }
+
+  /* ----------------------------------------------------------
+     Fine-pointer layer: CTA choreography and 3D card tilt.
+
+     Still gated, and not for cost: both read a live cursor
+     position. A touchscreen has no cursor, so these are undefined
+     there rather than switched off. gsap.matchMedia reverts them
+     automatically when input capability changes.
      ---------------------------------------------------------- */
   function initFinePointer() {
     mm.add('(min-width: 761px) and (hover: hover) and (pointer: fine)', function () {
@@ -1017,25 +1067,6 @@
         });
       });
 
-      /* Column counter-drift, scrubbed. yPercent so it composes
-         with the px-based entrance without touching the same
-         transform channel. */
-      qa('[data-drift]').forEach(function (host) {
-        var amp  = (parseFloat(host.getAttribute('data-drift')) || 10) * 0.25;
-        var axis = host.getAttribute('data-drift-axis') === 'column' ? 'column' : 'row';
-        var tpl  = window.getComputedStyle(host).gridTemplateColumns;
-        var cols = axis === 'column' ? 1 : (tpl && tpl !== 'none' ? tpl.split(/\s+/).filter(Boolean).length : 1);
-        qa(':scope > *', host).forEach(function (child, i) {
-          var unit = axis === 'column' ? i : Math.floor(i / Math.max(cols, 1));
-          var dir  = unit % 2 === 0 ? -1 : 1;
-          gsap.fromTo(child, { yPercent: dir * amp }, {
-            yPercent: dir * -amp,
-            ease: 'none',
-            scrollTrigger: { trigger: host, start: 'top bottom', end: 'bottom top', scrub: 0.5 }
-          });
-        });
-      });
-
       return function () {
         handlers.forEach(function (h) { h[0].removeEventListener(h[1], h[2]); });
         if (ticking) { gsap.ticker.remove(frame); ticking = false; }
@@ -1103,9 +1134,10 @@
     ), { clearProps: 'all' });
   }
 
-  /* Same rule on a mid-session switch: a touch visitor toggling
-     Reduce Motion keeps the animation, matching the CSS. */
-  var onMotionChange = function (e) { if (e.matches && finePointer.matches) neutralize(); };
+  /* Nothing to do on a mid-session switch: the preference is not
+     honoured, so flipping it must not tear the page down. Kept
+     wired up so restoring honoursReduce restores this too. */
+  var onMotionChange = function (e) { if (e.matches && honoursReduce) neutralize(); };
   if (typeof reduceQuery.addEventListener === 'function') {
     reduceQuery.addEventListener('change', onMotionChange);
   } else if (typeof reduceQuery.addListener === 'function') {

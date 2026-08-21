@@ -373,73 +373,23 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
 }
 
 /* ============================================================
-   MOBILE — drop the scroll-linked work entirely below 760px.
-   Parallax is the first thing to cost frames on a mid-tier phone.
+   MOBILE — scroll-linked work now runs here too, at an amplitude
+   scaled to the viewport. See the note below.
    ============================================================ */
-@media (max-width: 760px){
-  .hero-arcline{ display: none; }
-  .drift-col{ --drift: 0px !important; }
-}
+/* The arcline and the column drift used to be switched off here.
+   Both are scroll-scrubbed and need no pointer, so "phone" was
+   never the real reason - cost was. The particle count is derived
+   now (20 nodes on a phone rather than 44, and far fewer link
+   calculations per frame), which buys back the budget these need,
+   and motion.js scales their amplitude to the viewport instead of
+   shipping desktop pixel values to a small screen. */
 
 /* ============================================================
    REDUCED MOTION
    Fewer and gentler, not zero: keep the opacity fades that
    explain what appeared, drop everything that travels.
    ============================================================ */
-@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
-  html{ scroll-behavior: auto; }
 
-  .js [data-reveal],
-  .js [data-reveal].reveal-card{
-    transform: none;
-    transition: opacity 240ms ease;
-    transition-delay: var(--reveal-delay, 0ms);
-  }
-
-  .js .word-reveal .word{
-    transform: none;
-    filter: none;
-    transition: opacity 240ms ease;
-    transition-delay: var(--word-delay, 0ms);
-    will-change: auto;
-  }
-
-  /* Scroll-linked motion is removed outright, not just shortened */
-  [data-parallax-y],
-  [data-parallax-x],
-  .hero-inner{
-    transform: none !important;
-    will-change: auto;
-  }
-  .drift-col{ --drift: 0px !important; }
-  .hero-inner{ opacity: 1 !important; }
-  .hero-arcline{ display: none; }
-
-  .nav-logo:hover svg,
-  .btn-primary:hover,
-  .btn-secondary:hover,
-  .path-card:hover{ transform: none; }
-
-  .btn-primary:active,
-  .btn-secondary:active,
-  .nav-menu summary:active{ transform: none; }
-
-  .nav-menu-panel{ transform: none; }
-
-  .mission .section-inner::before{ transform: scaleX(1); transition: none; }
-
-  .js:not(.gsap) .program-visual .arc-pillar,
-  .js:not(.gsap) .program-visual .arc-deck,
-  .js:not(.gsap) .program-visual .arc-key{
-    transform: none;
-    opacity: 0;
-    transition: opacity 300ms ease;
-  }
-  .js:not(.gsap) .program-visual .arc-span{ stroke-dashoffset: 0; transition: none; }
-  .js:not(.gsap) .program-visual.is-visible .arc-pillar,
-  .js:not(.gsap) .program-visual.is-visible .arc-deck,
-  .js:not(.gsap) .program-visual.is-visible .arc-key{ opacity: 1; }
-}
 
 /* ============================================================
    TIER 2 — depth, material, and alignment
@@ -592,14 +542,7 @@ body::after{
   transition: opacity var(--dur-reveal) var(--ease-out);
 }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
-  .js [data-reveal].reveal-card{
-    filter: none;
-    transition: opacity 240ms ease;
-  }
-  .btn-arrow:hover .btn-icon{ transform: none; }
-  .skip-link{ transition: none; }
-}
+
 
 /* ---------- Extracted from inline styles (code-quality audit) ---------- */
 .program-more{ margin-top: 20px; }
@@ -627,9 +570,7 @@ body::after{
   color: #9aa2ae;
 }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
-  .link-rule:hover .link-arrow{ transform: none; }
-}
+
 
 /* ============================================================
    TIER 3 — adaptive layout
@@ -1020,9 +961,7 @@ section,
   z-index: 90;
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
-  .scroll-progress{ display: none; }
-}
+
 
 /* Kill switch: if the visitor turns on reduced motion while the
    GSAP engine is live, motion.js adds gsap-off after clearing its
@@ -1163,9 +1102,7 @@ section,
 .cta.btn-primary:active,
 .cta.btn-secondary:active{ transform: none; }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
-  .cta-fx{ display: none; }
-}
+
 
 /* ============================================================
    TIER 6 — CROSS-DEVICE FIDELITY
@@ -1308,32 +1245,44 @@ html{
 }
 
 /* ============================================================
-   TIER 7 — REDUCED MOTION IS HONOURED ON POINTER DEVICES ONLY
+   TIER 7 — superseded by TIER 8 below.
+   This tier briefly honoured reduced motion on pointer devices
+   only. It is now honoured nowhere; see TIER 8 for the decision,
+   the cost, and how to reverse it.
+   ============================================================ */
 
-   DELIBERATE PRODUCT DECISION, not an oversight. Every
-   prefers-reduced-motion block in this file now carries
-   `and (hover: hover) and (pointer: fine)`, so the preference is
-   honoured on laptops and desktops and overridden on touch
-   devices, which keep the full animated experience.
+/* ============================================================
+   TIER 8 — ONE EXPERIENCE ON EVERY DEVICE
 
-   Know what this trades away. People turn Reduce Motion on for
-   vestibular disorders, migraine, and seizure triggers, where
-   motion causes real physical symptoms rather than mild
-   annoyance — and phones are held close to the face, which is
-   where those symptoms are worst. This markedly reduces the
-   animation on a phone for a reader who explicitly asked for
-   less of it.
+   Two deliberate decisions, both requested, both with costs worth
+   stating rather than burying.
 
-   The condition is the single lever for all of it:
+   1. REDUCED MOTION IS NO LONGER HONOURED, ANYWHERE.
+   The five @media (prefers-reduced-motion: reduce) blocks that
+   used to live in this file are gone, and motion.js pins
+   honoursReduce to false. Every visitor gets the full animated
+   site regardless of their system setting.
 
-     honour everywhere (the accessible default) — drop the
-       `and (hover: hover) and (pointer: fine)` from the five
-       blocks above and from the gate in motion.js
+   This is the accessibility cost, in plain terms: Reduce Motion is
+   switched on for vestibular disorders, migraine, and seizure
+   triggers, where motion causes physical symptoms - nausea,
+   vertigo, headache - rather than mild annoyance. Those visitors
+   have asked the browser for less motion and this site now
+   declines. Nothing here degrades gracefully for them any more.
 
-     override everywhere — remove the query from those blocks
-       entirely and set honoursReduce to false in motion.js
+   To restore it, `git show` the commit that removed the blocks and
+   paste them back, then flip honoursReduce in motion.js. The two
+   layers must always agree: CSS that suppresses motion while the
+   engine still drives it produces elements frozen mid-animation.
 
-   motion.js gates its engine on the SAME condition, so the two
-   layers cannot drift apart. Change one and you must change the
-   other, or the CSS will suppress motion the JS is still driving.
+   2. SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH.
+   The arcline draw and the column counter-drift were switched off
+   below 760px. Neither needs a pointer - both are scrubbed to
+   scroll - so the gate was about frame cost, not capability.
+   Deriving the particle count freed that budget back.
+
+   What remains desktop-only is the genuinely pointer-dependent
+   layer: the CTA choreography and the 3D card tilt read a cursor
+   position. There is no cursor on a touchscreen, so these are not
+   switched off on phones so much as undefined there.
    ============================================================ */
