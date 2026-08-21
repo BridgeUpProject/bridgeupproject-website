@@ -4,81 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Programs — The Bridge Up Project: AI Pathways</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
-
-  :root{
-    --ink: #1161A8;
-    --steel: #2B5291;
-    --gold: #E9BE3F;
-    --paper: #FAF8F4;
-    --paper-dark: #1D3F73;
-    --line: #DCD5C8;
-  }
-
-  *{ box-sizing: border-box; margin:0; padding:0; }
-  body{ font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); line-height: 1.55; }
-  a{ color: inherit; text-decoration: none; }
-
-  nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 22px 6%; background: var(--paper); border-bottom: 1px solid var(--line);
-    position: sticky; top:0; z-index: 10;
-  }
-  .nav-logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size: 1.15rem; }
-  .nav-logo svg{ height: 34px; width: auto; }
-  .nav-links{ display:flex; align-items:center; gap: 34px; font-size: 0.92rem; font-weight:500; letter-spacing:0.02em; }
-  .nav-links a{ position:relative; padding-bottom:4px; }
-  .nav-links a:hover{ color: var(--gold); }
-  .nav-menu{ position:relative; }
-  .nav-menu summary{ list-style:none; cursor:pointer; padding: 8px 16px; border: 1px solid var(--line); border-radius:3px; font-weight:600; }
-  .nav-menu summary::-webkit-details-marker{ display:none; }
-  .nav-menu summary:after{ content:" \25BE"; }
-  .nav-menu[open] summary{ background: var(--ink); color:#fff; border-color:var(--ink); }
-  .nav-menu-panel{
-    position:absolute; right:0; top: calc(100% + 8px); background:#fff;
-    border:1px solid var(--line); border-radius:4px; min-width:180px;
-    box-shadow: 0 8px 24px rgba(17,97,168,0.15); overflow:hidden; z-index:20;
-  }
-  .nav-menu-panel a{ display:block; padding: 13px 18px; font-weight:500; }
-  .nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
-
-  .page-header{ background: var(--paper-dark); color:#F4EFE4; padding: 80px 6% 70px; }
-  .eyebrow{ font-size: 0.8rem; letter-spacing: 0.18em; text-transform:uppercase; color: var(--gold); font-weight:600; margin-bottom: 18px; display:block; }
-  .page-header h1{ font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2rem, 4vw, 2.8rem); max-width:640px; }
-  .page-header p{ color:#CBD3E1; max-width:580px; margin-top:18px; font-size:1.05rem; }
-
-  section{ padding: 90px 6%; }
-  .section-inner{ max-width: 1100px; margin: 0 auto; }
-
-  .session-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-  .session-card{ background:#fff; border:1px solid var(--line); border-radius:6px; padding: 32px 30px; }
-  .session-head{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
-  .session-num{
-    width:34px; height:34px; border-radius:50%; background: var(--gold);
-    color: var(--paper-dark); font-weight:700; font-size:0.95rem;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .session-card h3{ font-family:'Fraunces', serif; font-size:1.25rem; font-weight:600; }
-  .session-card ul{ list-style:none; }
-  .session-card li{ position:relative; padding-left:18px; color:#565f6e; font-size:0.94rem; margin-bottom:9px; }
-  .session-card li:before{ content:"•"; position:absolute; left:0; color: var(--gold); font-weight:700; }
-  .session-card li:last-child{ margin-bottom:0; }
-
-  footer{
-    background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; font-size:0.85rem;
-  }
-  .footer-links{ display:flex; gap:26px; }
-
-  @media (max-width: 760px){
-    .session-grid{ grid-template-columns: 1fr; }
-    .nav-links{ gap:16px; }
-    .page-header{ padding: 56px 6% 28px; }
-    section{ padding: 44px 6%; }
-    footer{ padding: 36px 6% 24px; }
-  }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="icon" href="/bridge_up_project_logo.svg" type="image/svg+xml">
 <meta name="description" content="AI Pathways: an eight-week, small-group workshop introducing teens in care to AI as a practical tool.">
 <meta property="og:title" content="Programs - The Bridge Up Project">
@@ -113,7 +41,7 @@ window.setTimeout(function(){
 <script src="/motion.js" defer></script>
 <script src="/site.js" defer></script>
 </head>
-<body>
+<body class="page-programs">
 
 <a class="skip-link" href="#main">Skip to content</a>
 

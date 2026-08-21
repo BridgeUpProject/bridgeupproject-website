@@ -4,165 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Bridge Up Project: AI Pathways</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
-
-  :root{
-    --ink: #1161A8;
-    --steel: #2B5291;
-    --gold: #E9BE3F;
-    --paper: #FAF8F4;
-    --paper-dark: #1D3F73;
-    --line: #DCD5C8;
-  }
-
-  *{ box-sizing: border-box; margin:0; padding:0; }
-  body{
-    font-family: 'Inter', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    line-height: 1.55;
-  }
-  a{ color: inherit; text-decoration: none; }
-
-  /* NAV */
-  nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 22px 6%;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-    position: sticky; top:0; z-index: 10;
-  }
-  .nav-logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size: 1.15rem; }
-  .nav-logo svg{ height: 34px; width: auto; }
-  .nav-links{ display:flex; align-items:center; gap: 34px; font-size: 0.92rem; font-weight:500; letter-spacing:0.02em; }
-  .nav-links a{ position:relative; padding-bottom:4px; }
-  .nav-links a:hover{ color: var(--gold); }
-  .nav-menu{ position:relative; }
-  .nav-menu summary{
-    list-style:none; cursor:pointer; padding: 8px 16px;
-    border: 1px solid var(--line); border-radius:3px; font-weight:600;
-  }
-  .nav-menu summary::-webkit-details-marker{ display:none; }
-  .nav-menu summary:after{ content:" \25BE"; }
-  .nav-menu[open] summary{ background: var(--ink); color:#fff; border-color:var(--ink); }
-  .nav-menu-panel{
-    position:absolute; right:0; top: calc(100% + 8px); background:#fff;
-    border:1px solid var(--line); border-radius:4px; min-width:180px;
-    box-shadow: 0 8px 24px rgba(17,97,168,0.15); overflow:hidden; z-index:20;
-  }
-  .nav-menu-panel a{ display:block; padding: 13px 18px; font-weight:500; }
-  .nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
-  .nav-cta{
-    background: var(--ink); color:#fff; padding: 10px 22px;
-    border-radius: 3px; font-size:0.88rem; font-weight:600;
-  }
-
-  /* HERO */
-  .hero{
-    background: var(--paper-dark);
-    color: #F4EFE4;
-    padding: 100px 6% 130px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-arc{
-    position:absolute; left:0; right:0; bottom:-2px; height:140px;
-    background: linear-gradient(180deg, transparent, var(--paper) 92%);
-  }
-  .hero-inner{ max-width: 760px; position:relative; }
-  .eyebrow{
-    font-size: 0.8rem; letter-spacing: 0.18em; text-transform:uppercase;
-    color: var(--gold); font-weight:600; margin-bottom: 22px; display:block;
-  }
-  h1{
-    font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2.3rem, 4.2vw, 3.4rem);
-    line-height:1.12; margin-bottom: 26px; letter-spacing:-0.01em;
-  }
-  .hero p{ font-size: 1.15rem; color:#CBD3E1; max-width: 580px; margin-bottom: 36px; }
-  .hero-buttons{ display:flex; gap:16px; flex-wrap:wrap; }
-  .btn-primary{
-    background: var(--gold); color: var(--paper-dark); padding: 14px 30px;
-    border-radius:3px; font-weight:700; font-size:0.95rem;
-  }
-  .btn-secondary{
-    border: 1px solid #5A6B87; color:#F4EFE4; padding: 14px 30px;
-    border-radius:3px; font-weight:600; font-size:0.95rem;
-  }
-
-  /* STATS */
-  .stats{
-    display:grid; grid-template-columns: repeat(3, 1fr); gap: 0;
-    max-width: 1100px; margin: -70px auto 0; position:relative; z-index:2;
-    padding: 0 6%;
-  }
-  .stat-card{
-    background:#fff; border:1px solid var(--line); padding: 34px 30px;
-    border-right:none;
-  }
-  .stat-card:last-child{ border-right:1px solid var(--line); }
-  .stat-number{ font-family:'Fraunces', serif; font-size:2.6rem; font-weight:700; color:var(--steel); }
-  .stat-label{ font-size:0.92rem; color:#565f6e; margin-top:8px; }
-  .stat-source{ font-size:0.72rem; color:#9aa2ae; margin-top:10px; letter-spacing:0.02em; }
-
-  section{ padding: 100px 6%; }
-  .section-inner{ max-width: 1100px; margin: 0 auto; }
-
-  /* MISSION */
-  .mission{ text-align:center; }
-  .mission h2{
-    font-family:'Fraunces', serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight:600;
-    max-width: 780px; margin: 0 auto 20px; color: var(--ink);
-  }
-  .mission .sub{ color:#5A6472; max-width:620px; margin:0 auto; font-size:1.05rem; }
-
-  /* PROGRAM */
-  .program{ background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
-  .program-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items:center; }
-  .program-tag{ font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:16px; display:block; }
-  .program h3{ font-family:'Fraunces', serif; font-size:2rem; font-weight:600; margin-bottom:18px; }
-  .program p{ color:#565f6e; margin-bottom: 22px; }
-  .session-list{ list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
-  .session-list li{ font-size:0.9rem; color: var(--steel); padding-left:20px; position:relative; }
-  .session-list li:before{ content: attr(data-n); position:absolute; left:0; top:0; color:var(--gold); font-weight:700; font-size:0.78rem; }
-  .program-visual{
-    background: var(--paper-dark); border-radius:6px; height: 340px;
-    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
-  }
-  .program-visual svg{ width:70%; height:auto; }
-
-  /* FOUNDER */
-  .founder{ display:grid; gap: 50px; align-items:start; }
-  .founder .name{ font-weight:700; font-size:0.95rem; }
-  .founder .role{ font-size:0.85rem; color:#7A8290; }
-
-  /* CTA STRIP */
-  .cta-strip{
-    background: var(--ink); color:#fff; text-align:center; padding: 90px 6%;
-  }
-  .cta-strip h2{ font-family:'Fraunces', serif; font-size:2.1rem; font-weight:600; margin-bottom:16px; }
-  .cta-strip p{ color:#B9C2D4; max-width:520px; margin: 0 auto 34px; }
-
-  footer{
-    background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;
-    font-size:0.85rem;
-  }
-  .footer-links{ display:flex; gap:26px; }
-
-  @media (max-width: 760px){
-    .stats{ grid-template-columns: 1fr; margin-top:0; }
-    .stat-card{ border-right:1px solid var(--line) !important; border-bottom:none; }
-    .program-grid, .founder{ grid-template-columns: 1fr; }
-    .nav-links{ gap:16px; }
-    .hero{ padding: 60px 6% 26px; }
-    .hero-arc{ height:36px; }
-    .program-visual{ height:200px; }
-    section{ padding: 44px 6%; }
-    .cta-strip{ padding: 56px 6%; }
-    footer{ padding: 36px 6% 24px; }
-  }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="icon" href="/bridge_up_project_logo.svg" type="image/svg+xml">
 <meta name="description" content="The Bridge Up Project teaches foster youth independence skills through AI literacy.">
 <meta property="og:title" content="The Bridge Up Project: AI Pathways">
@@ -232,7 +76,7 @@ window.setTimeout(function(){
 }
 </script>
 </head>
-<body>
+<body class="page-home">
 
 <a class="skip-link" href="#main">Skip to content</a>
 
