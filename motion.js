@@ -39,6 +39,137 @@
   var hasLibs = window.gsap && window.ScrollTrigger && window.SplitText &&
                 window.DrawSVGPlugin && window.ScrambleTextPlugin;
 
+  /* ----------------------------------------------------------
+     HERO CONSTELLATION — deliberately ABOVE the gate below.
+
+     The constellation is the hero's "bridge" motif rendered
+     literally: it is identity, not decoration. It also happens to
+     need nothing from GSAP — only tsParticles — so there was never
+     a technical reason for it to sit behind the gate.
+
+     It did, though, and the cost was severe. Returning early for
+     prefers-reduced-motion took the constellation out of the page
+     ENTIRELY, and site.js never rebuilds it, so an iPhone with
+     Reduce Motion switched on — a very common accessibility
+     setting, not an edge case — rendered a plain navy hero while
+     the same visitor's laptop rendered the full one. That is not
+     a motion difference between the two devices. It is a
+     different design on each.
+
+     The conflation is the bug: prefers-reduced-motion asks us not
+     to ANIMATE, not to remove content. So the nodes and their
+     links are always drawn, at the same derived density; only the
+     drift and the pointer-grab response are conditional on the
+     preference. A reader who asked for stillness gets a still
+     constellation, not an empty hero.
+     ---------------------------------------------------------- */
+  var constellation = (function () {
+    var container = null;
+
+    /* Density is DERIVED, not fixed. The tuned look — 44 nodes
+       linking at 160px — was measured in a 1440x539 hero: one node
+       per ~17,600 square px, link reach ~1.2x the mean spacing
+       between nodes. Ship those constants unchanged to a 390x409
+       phone hero and the area collapses to a fifth while count and
+       reach stay put, so nearly every node reaches every other and
+       the constellation renders as a solid mesh over the headline.
+
+       Holding node DENSITY constant overshoots the other way (9
+       nodes on a phone reads as empty), so count follows the
+       hero's linear dimension — the square root of the area ratio
+       — and the reach is re-derived from the spacing that implies.
+       Both expressions return 44 and 160 exactly at 1440x539, so
+       the laptop look is untouched. */
+    var REF_AREA  = 1440 * 539;
+    var REF_COUNT = 44;
+    var REACH     = 1.205;
+    var host      = null;
+
+    function tune() {
+      var r = host.getBoundingClientRect();
+      var area  = Math.max(r.width * r.height, 1);
+      var count = Math.min(52, Math.max(16,
+                    Math.round(REF_COUNT * Math.sqrt(area / REF_AREA))));
+      var distance = Math.round(REACH * Math.sqrt(area / count));
+      return { count: count, distance: Math.min(175, Math.max(88, distance)) };
+    }
+
+    function build() {
+      /* The v3 bundle exposes loadFull but does NOT auto-register
+         its plugins — without that call particles simulate yet
+         never draw. */
+      if (!window.tsParticles || !window.loadFull) return;
+      host = document.querySelector('.hero-bg');
+      if (!host) return;
+
+      var el = document.createElement('div');
+      el.id = 'hero-net';
+      el.style.cssText = 'position:absolute;inset:0;';
+      host.appendChild(el);
+
+      var t     = tune();
+      var still = reduceQuery.matches;
+
+      window.loadFull(tsParticles).then(function () {
+        return tsParticles.load({ id: 'hero-net', options: {
+          fullScreen: { enable: false },
+          fpsLimit: 60,
+          detectRetina: true,
+          pauseOnOutsideViewport: true,
+          particles: {
+            number: { value: t.count, density: { enable: false } },
+            color: { value: ['#FAF8F4', '#FAF8F4', '#E9BE3F'] },
+            opacity: { value: { min: 0.3, max: 0.7 } },
+            size: { value: { min: 1.5, max: 3 } },
+            links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: t.distance, width: 1 },
+            /* the two conditional lines in the whole config */
+            move: { enable: !still, speed: 0.55, direction: 'none', outModes: { default: 'out' } }
+          },
+          interactivity: {
+            events: { onHover: { enable: !still, mode: 'grab' }, resize: { enable: true } },
+            modes: { grab: { distance: Math.round(t.distance * 1.06), links: { opacity: 0.38 } } }
+          }
+        } });
+      }).then(function (c) {
+        container = c;
+
+        /* A phone turning landscape more than doubles the hero's
+           area, which is precisely the case the derivation exists
+           for — so re-derive rather than stretch the old count
+           across the new box. */
+        var applied = t.count + ':' + t.distance;
+        var timer   = 0;
+        window.addEventListener('resize', function () {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(function () {
+            if (!container) return;
+            var n = tune();
+            var key = n.count + ':' + n.distance;
+            if (key === applied) return;
+            applied = key;
+            container.options.particles.number.value   = n.count;
+            container.options.particles.links.distance = n.distance;
+            container.refresh();
+          }, 250);
+        });
+      });
+    }
+
+    /* Mid-session switch to Reduce Motion: stop the drift, keep
+       the picture. Destroying it here would reintroduce exactly
+       the blank hero this module exists to prevent. */
+    function freeze() {
+      if (!container) return;
+      container.options.particles.move.enable = false;
+      container.options.interactivity.events.onHover.enable = false;
+      container.refresh();
+    }
+
+    return { build: build, freeze: freeze };
+  })();
+
+  constellation.build();
+
   /* Hand the page back to the legacy engine in site.js. */
   if (!hasLibs || reduceQuery.matches) {
     root.classList.remove('gsap');
@@ -60,7 +191,6 @@
   var scrambles = [];
   var mm        = gsap.matchMedia();
   var lenis     = null;
-  var particles = null;
   var notes     = [];
 
   /* Sections with bespoke choreography opt out of the generic
@@ -212,7 +342,6 @@
     initPageHeader();
     initCounters();
     initMission();
-    initHeroParticles();
     initNotation();
     initProgram();
     initSessionCards();
@@ -238,99 +367,6 @@
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
-  }
-
-  /* ---------------- HOME: hero particle network ---------------- */
-  /* Slow-drifting nodes joined by faint lines — the "bridge" motif
-     rendered literally. Sits in .hero-bg behind the glows; grab mode
-     brightens links near the cursor. Tuned quiet on purpose: the
-     numbers below are the knobs (count, speed, link opacity). */
-  function initHeroParticles() {
-    /* The v3 bundle exposes loadFull but does NOT auto-register its
-       plugins — without this call particles simulate yet never draw. */
-    if (!window.tsParticles || !window.loadFull) return;
-    var host = q('.hero-bg');
-    if (!host) return;
-    var el = document.createElement('div');
-    el.id = 'hero-net';
-    el.style.cssText = 'position:absolute;inset:0;';
-    host.appendChild(el);
-    /* --------------------------------------------------------
-       Density has to be DERIVED, not fixed. The tuned look — 44
-       nodes linking at 160px — was measured in a 1440x539 hero:
-       one node per ~17,600 square px, and a link reach of ~1.2x
-       the mean spacing between nodes. Ship those same two
-       constants to a 390x409 phone hero and the area collapses
-       to a fifth while the count and the reach stay put, so
-       nearly every node comes within reach of every other and
-       the sparse constellation turns into a solid white mesh
-       sitting on top of the headline.
-
-       Holding node DENSITY constant instead overshoots the other
-       way — it works out to 9 nodes on a phone, which reads as
-       empty. So the count follows the hero's linear dimension
-       (the square root of the area ratio) and the link reach is
-       then re-derived from whatever spacing that count implies.
-       Both expressions return the current desktop numbers
-       exactly at 1440x539, so the laptop look is untouched.
-       -------------------------------------------------------- */
-    var REF_AREA  = 1440 * 539;   /* the hero the look was tuned in */
-    var REF_COUNT = 44;
-    var REACH     = 1.205;        /* link distance / mean node spacing */
-
-    function tune() {
-      var r = host.getBoundingClientRect();
-      var area  = Math.max(r.width * r.height, 1);
-      var count = Math.round(REF_COUNT * Math.sqrt(area / REF_AREA));
-      count = Math.min(52, Math.max(16, count));
-      var distance = Math.round(REACH * Math.sqrt(area / count));
-      return { count: count, distance: Math.min(175, Math.max(88, distance)) };
-    }
-
-    var t = tune();
-
-    window.loadFull(tsParticles).then(function () {
-      return tsParticles.load({ id: 'hero-net', options: {
-      fullScreen: { enable: false },
-      fpsLimit: 60,
-      detectRetina: true,
-      pauseOnOutsideViewport: true,
-      particles: {
-        number: { value: t.count, density: { enable: false } },
-        color: { value: ['#FAF8F4', '#FAF8F4', '#E9BE3F'] },
-        opacity: { value: { min: 0.3, max: 0.7 } },
-        size: { value: { min: 1.5, max: 3 } },
-        links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: t.distance, width: 1 },
-        move: { enable: true, speed: 0.55, direction: 'none', outModes: { default: 'out' } }
-      },
-      interactivity: {
-        events: { onHover: { enable: true, mode: 'grab' }, resize: { enable: true } },
-        modes: { grab: { distance: Math.round(t.distance * 1.06), links: { opacity: 0.38 } } }
-      }
-      } });
-    }).then(function (c) {
-      particles = c;
-
-      /* A phone turning landscape more than doubles the hero's
-         area, which is precisely the case the derivation exists
-         for — so re-derive on resize instead of letting the
-         container stretch the old count over the new box. */
-      var applied = t.count + ':' + t.distance;
-      var timer   = 0;
-      window.addEventListener('resize', function () {
-        window.clearTimeout(timer);
-        timer = window.setTimeout(function () {
-          if (!particles) return;
-          var n = tune();
-          var key = n.count + ':' + n.distance;
-          if (key === applied) return;
-          applied = key;
-          particles.options.particles.number.value   = n.count;
-          particles.options.particles.links.distance = n.distance;
-          particles.refresh();
-        }, 250);
-      });
-    });
   }
 
   /* ---------------- HOME: mission annotations ---------------- */
@@ -1025,7 +1061,7 @@
     scrambles.forEach(function (s) { s.el.textContent = s.text; });
     mm.revert();
     if (lenis) { lenis.destroy(); lenis = null; }
-    if (particles) { particles.destroy(); particles = null; }
+    constellation.freeze();
     notes.forEach(function (n) { try { n.remove(); } catch (e) {} });
     notes = [];
     if (progressBar.parentNode) progressBar.parentNode.removeChild(progressBar);
