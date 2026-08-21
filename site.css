@@ -1285,3 +1285,24 @@ section,
 @media (max-width: 760px){
   .path-card--wide{ padding: 34px 28px; }
 }
+
+/* ---------- Mobile text inflation guard ----------
+
+   Android Chrome, and iOS Safari under some conditions, apply
+   automatic text inflation to pages that never opt out: font
+   sizes in text blocks get scaled up based on the block's width
+   against the viewport. It is applied PER BLOCK, not uniformly —
+   a long paragraph is boosted harder than a short heading — so
+   it does not shift the page up by some constant, it reorders
+   the type scale. That is exactly the relationship the ramps
+   above exist to hold, and it is invisible in a desktop browser
+   at a phone width, because desktop engines do no boosting.
+
+   100% (rather than none) keeps the user's own pinch-zoom and
+   accessibility text-size settings working; it only refuses the
+   automatic, per-block adjustment. */
+html{
+  -webkit-text-size-adjust: 100%;
+     -moz-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+}
