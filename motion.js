@@ -36,6 +36,29 @@
   var root = document.documentElement;
   var reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /* ----------------------------------------------------------
+     Reduced motion is honoured on POINTER devices only.
+
+     Deliberate product decision, not an oversight: touch devices
+     keep the full animated experience even when the visitor has
+     Reduce Motion switched on, so a phone matches the laptop.
+
+     Know what it trades away. Reduce Motion is enabled for
+     vestibular disorders, migraine and seizure triggers, where
+     motion produces real physical symptoms rather than mild
+     annoyance, and a phone is held close to the face, which is
+     where those symptoms are worst.
+
+     site.css gates its five prefers-reduced-motion blocks on this
+     SAME condition. The two must agree — if the CSS honours the
+     preference while this engine ignores it, the stylesheet
+     suppresses transitions GSAP is still driving. To honour it
+     everywhere (the accessible default), drop `&& finePointer
+     .matches` here and the trailing media condition there.
+     ---------------------------------------------------------- */
+  var finePointer   = window.matchMedia('(hover: hover) and (pointer: fine)');
+  var honoursReduce = reduceQuery.matches && finePointer.matches;
+
   var hasLibs = window.gsap && window.ScrollTrigger && window.SplitText &&
                 window.DrawSVGPlugin && window.ScrambleTextPlugin;
 
@@ -108,7 +131,7 @@
       host.appendChild(el);
 
       var t     = tune();
-      var still = reduceQuery.matches;
+      var still = honoursReduce;
 
       window.loadFull(tsParticles).then(function () {
         return tsParticles.load({ id: 'hero-net', options: {
@@ -171,7 +194,7 @@
   constellation.build();
 
   /* Hand the page back to the legacy engine in site.js. */
-  if (!hasLibs || reduceQuery.matches) {
+  if (!hasLibs || honoursReduce) {
     root.classList.remove('gsap');
     return;
   }
@@ -1080,7 +1103,9 @@
     ), { clearProps: 'all' });
   }
 
-  var onMotionChange = function (e) { if (e.matches) neutralize(); };
+  /* Same rule on a mid-session switch: a touch visitor toggling
+     Reduce Motion keeps the animation, matching the CSS. */
+  var onMotionChange = function (e) { if (e.matches && finePointer.matches) neutralize(); };
   if (typeof reduceQuery.addEventListener === 'function') {
     reduceQuery.addEventListener('change', onMotionChange);
   } else if (typeof reduceQuery.addListener === 'function') {

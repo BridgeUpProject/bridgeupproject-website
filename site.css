@@ -386,7 +386,7 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
    Fewer and gentler, not zero: keep the opacity fades that
    explain what appeared, drop everything that travels.
    ============================================================ */
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
   html{ scroll-behavior: auto; }
 
   .js [data-reveal],
@@ -592,7 +592,7 @@ body::after{
   transition: opacity var(--dur-reveal) var(--ease-out);
 }
 
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
   .js [data-reveal].reveal-card{
     filter: none;
     transition: opacity 240ms ease;
@@ -627,7 +627,7 @@ body::after{
   color: #9aa2ae;
 }
 
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
   .link-rule:hover .link-arrow{ transform: none; }
 }
 
@@ -1020,7 +1020,7 @@ section,
   z-index: 90;
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
   .scroll-progress{ display: none; }
 }
 
@@ -1163,7 +1163,7 @@ section,
 .cta.btn-primary:active,
 .cta.btn-secondary:active{ transform: none; }
 
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine){
   .cta-fx{ display: none; }
 }
 
@@ -1306,3 +1306,34 @@ html{
      -moz-text-size-adjust: 100%;
           text-size-adjust: 100%;
 }
+
+/* ============================================================
+   TIER 7 — REDUCED MOTION IS HONOURED ON POINTER DEVICES ONLY
+
+   DELIBERATE PRODUCT DECISION, not an oversight. Every
+   prefers-reduced-motion block in this file now carries
+   `and (hover: hover) and (pointer: fine)`, so the preference is
+   honoured on laptops and desktops and overridden on touch
+   devices, which keep the full animated experience.
+
+   Know what this trades away. People turn Reduce Motion on for
+   vestibular disorders, migraine, and seizure triggers, where
+   motion causes real physical symptoms rather than mild
+   annoyance — and phones are held close to the face, which is
+   where those symptoms are worst. This markedly reduces the
+   animation on a phone for a reader who explicitly asked for
+   less of it.
+
+   The condition is the single lever for all of it:
+
+     honour everywhere (the accessible default) — drop the
+       `and (hover: hover) and (pointer: fine)` from the five
+       blocks above and from the gate in motion.js
+
+     override everywhere — remove the query from those blocks
+       entirely and set honoursReduce to false in motion.js
+
+   motion.js gates its engine on the SAME condition, so the two
+   layers cannot drift apart. Change one and you must change the
+   other, or the CSS will suppress motion the JS is still driving.
+   ============================================================ */
