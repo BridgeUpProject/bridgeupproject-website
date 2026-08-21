@@ -59,6 +59,9 @@
   var counters  = [];
   var scrambles = [];
   var mm        = gsap.matchMedia();
+  var lenis     = null;
+  var particles = null;
+  var notes     = [];
 
   /* Sections with bespoke choreography opt out of the generic
      reveal batch. */
@@ -204,10 +207,13 @@
   fontsReady.then(function () {
     if (root.classList.contains('gsap-off')) return;
 
+    initLenis();
     initHero();
     initPageHeader();
     initCounters();
     initMission();
+    initHeroParticles();
+    initNotation();
     initProgram();
     initSessionCards();
     initBio();
@@ -216,6 +222,92 @@
 
     ScrollTrigger.refresh();
   });
+
+
+  /* ---------------- Site-wide: Lenis smooth scroll ---------------- */
+  /* Lenis replaces native scrolling with an eased interpolation and
+     hands every frame to ScrollTrigger, so scrubbed scenes ride the
+     same smoothed value the page does. Touch devices keep native
+     scrolling: their momentum physics already feel right, and fighting
+     them reads as jank, not polish. */
+  function initLenis() {
+    if (!window.Lenis) return;
+    if (window.matchMedia('(hover: none)').matches) return;
+    lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.12 });
+    window.__BU_LENIS__ = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  /* ---------------- HOME: hero particle network ---------------- */
+  /* Slow-drifting nodes joined by faint lines — the "bridge" motif
+     rendered literally. Sits in .hero-bg behind the glows; grab mode
+     brightens links near the cursor. Tuned quiet on purpose: the
+     numbers below are the knobs (count, speed, link opacity). */
+  function initHeroParticles() {
+    /* The v3 bundle exposes loadFull but does NOT auto-register its
+       plugins — without this call particles simulate yet never draw. */
+    if (!window.tsParticles || !window.loadFull) return;
+    var host = q('.hero-bg');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.id = 'hero-net';
+    el.style.cssText = 'position:absolute;inset:0;';
+    host.appendChild(el);
+    window.loadFull(tsParticles).then(function () {
+      return tsParticles.load({ id: 'hero-net', options: {
+      fullScreen: { enable: false },
+      fpsLimit: 60,
+      detectRetina: true,
+      pauseOnOutsideViewport: true,
+      particles: {
+        number: { value: 44, density: { enable: false } },
+        color: { value: ['#FAF8F4', '#FAF8F4', '#E9BE3F'] },
+        opacity: { value: { min: 0.3, max: 0.7 } },
+        size: { value: { min: 1.5, max: 3 } },
+        links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: 160, width: 1 },
+        move: { enable: true, speed: 0.55, direction: 'none', outModes: { default: 'out' } }
+      },
+      interactivity: {
+        events: { onHover: { enable: true, mode: 'grab' }, resize: { enable: true } },
+        modes: { grab: { distance: 170, links: { opacity: 0.38 } } }
+      }
+      } });
+    }).then(function (c) { particles = c; });
+  }
+
+  /* ---------------- HOME: mission annotations ---------------- */
+  /* Hand-drawn rough-notation marks on the two phrases the mission
+     statement actually argues for. Drawn once, sequenced, after the
+     masked-line reveal has finished settling. */
+  function initNotation() {
+    if (!window.RoughNotation) return;
+    var marks = qa('.mission .note-mark');
+    if (!marks.length) return;
+    marks.forEach(function (el) {
+      var box = el.getAttribute('data-note') === 'box';
+      notes.push(RoughNotation.annotate(el, {
+        type: box ? 'box' : 'underline',
+        color: box ? '#1161A8' : '#E9BE3F',
+        strokeWidth: 2.5,
+        padding: box ? 5 : 2,
+        iterations: 2,
+        animationDuration: 900,
+        multiline: true
+      }));
+    });
+    ScrollTrigger.create({
+      trigger: '.mission',
+      start: 'top 60%',
+      once: true,
+      onEnter: function () {
+        window.setTimeout(function () {
+          RoughNotation.annotationGroup(notes).show();
+        }, 650);
+      }
+    });
+  }
 
   /* ---------------- HOME: hero ---------------- */
   function initHero() {
@@ -876,6 +968,10 @@
     counters.forEach(function (c) { c.el.textContent = c.text; });
     scrambles.forEach(function (s) { s.el.textContent = s.text; });
     mm.revert();
+    if (lenis) { lenis.destroy(); lenis = null; }
+    if (particles) { particles.destroy(); particles = null; }
+    notes.forEach(function (n) { try { n.remove(); } catch (e) {} });
+    notes = [];
     if (progressBar.parentNode) progressBar.parentNode.removeChild(progressBar);
     gsap.set(qa(
       '[data-reveal], [data-words], .hero-glow, .hero-arcline path, .hero-inner, ' +
