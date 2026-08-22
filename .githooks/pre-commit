@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Blocks commits containing invisible character corruption.
+#
+# Lives in .githooks/ rather than .git/hooks/ so it is version-controlled and
+# travels with a clone. `npm install` wires it up via the "prepare" script;
+# to enable it by hand:
+#
+#   git config core.hooksPath .githooks
+#
+# Bypass for a single commit with --no-verify if you genuinely need to.
+
+if command -v node >/dev/null 2>&1; then
+  node scripts/check-encoding.js --staged || exit 1
+else
+  echo "pre-commit: node not found, skipping the encoding check" >&2
+fi

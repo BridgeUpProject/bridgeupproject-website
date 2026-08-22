@@ -16,7 +16,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "node server.js"
+    "serve": "node server.js",
+    "check:encoding": "node scripts/check-encoding.js",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@barba/core": "^2.10.3",

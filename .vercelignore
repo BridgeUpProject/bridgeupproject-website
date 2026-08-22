@@ -1,0 +1,4 @@
+# Tooling, not site content. The Vercel project serves the repo root as-is
+# (outputDirectory "."), so anything not excluded here is publicly fetchable.
+scripts/
+.githooks/

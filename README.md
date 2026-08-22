@@ -80,6 +80,37 @@ and `connect.html` load these two; the other pages have no CTA buttons.
 GSAP is required. Motion and anime.js are feature-detected in `motion.js`,
 so a failed download degrades the CTA choreography rather than the page.
 
+## Encoding check
+
+Source files are checked for invisible character corruption:
+
+```
+npm run check:encoding
+```
+
+This exists because the programs page shipped a broken bullet. `site.css` held
+`U+0082` — an invisible C1 control character — where a `•` belonged. A CSS
+hex escape (`\2022`) had been re-read by a tool as a C-style *octal* escape,
+where `\202` means `0x82`, leaving the trailing `2` as a literal. Browsers draw
+a `.notdef` box for a control codepoint, so every lesson topic rendered a small
+rectangle and a stray `2` instead of a bullet.
+
+It survived review because it is invisible: the file *looks* like
+`content:"2"` in any editor, and the diff looks intentional. The check works at
+the byte level, which is the only thing that catches it. It flags C0/C1 control
+characters, `U+FFFD`, a UTF-8 BOM, invalid UTF-8, and double-encoding mojibake
+(the `U+00E2 U+20AC` signature of UTF-8 re-read as Latin-1). Binaries and `vendor/` are skipped.
+
+A `pre-commit` hook in `.githooks/` runs it against staged files. `npm install`
+wires it up via the `prepare` script; to enable it by hand:
+
+```
+git config core.hooksPath .githooks
+```
+
+If it ever fires, type the intended character directly rather than reaching for
+a backslash escape — that is what broke last time.
+
 ## Known open items (not fixed by this mockup)
 
 - Email addresses on the Connect page (`info@`, `volunteer@`, `tyson@bridgeupproject.org`) are not yet live inboxes — need to be set up before launch.
