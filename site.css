@@ -174,7 +174,7 @@ footer{
 .session-card h3{ font-family:'Fraunces', serif; font-size:1.25rem; font-weight:600; }
 .session-card ul{ list-style:none; }
 .session-card li{ position:relative; padding-left:18px; color:#565f6e; font-size:0.94rem; margin-bottom:9px; }
-.session-card li:before{ content:"2"; position:absolute; left:0; color: var(--gold); font-weight:700; }
+.session-card li:before{ content:"•"; position:absolute; left:0; color: var(--gold); font-weight:700; }
 .session-card li:last-child{ margin-bottom:0; }
 
 /* ---------- CONNECT — paths ---------- */
