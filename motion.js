@@ -166,14 +166,6 @@
              a hard cut-off at the reach radius. */
           var o = 0.22 * (1 - Math.sqrt(d2) / reach);
 
-          /* Grab: threads near the cursor brighten. Reads as the
-             constellation noticing you, without moving anything. */
-          if (pointer.live) {
-            var mx = (a.x + b.x) / 2 - pointer.x;
-            var my = (a.y + b.y) / 2 - pointer.y;
-            var m2 = mx * mx + my * my;
-            if (m2 < grab2) o += 0.16 * (1 - Math.sqrt(m2) / grabReach);
-          }
           if (o <= 0.004) continue;
 
           ctx.strokeStyle = 'rgba(' + CREAM + ',' + o.toFixed(3) + ')';
@@ -181,6 +173,29 @@
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      /* Grab: lines reach from the cursor out to every node within
+         range, brightest at the pointer and fading to nothing at the
+         edge of it. This is the thing that makes the field feel
+         attached to you rather than merely nearby - the previous
+         version only brightened links that already existed between
+         nodes, which is close to invisible. */
+      if (pointer.live) {
+        for (var p = 0; p < nodes.length; p++) {
+          var pn = nodes[p];
+          var px = pn.x - pointer.x, py = pn.y - pointer.y;
+          var pd2 = px * px + py * py;
+          if (pd2 > grab2) continue;
+          var po = 0.38 * (1 - Math.sqrt(pd2) / grabReach);
+          if (po <= 0.004) continue;
+          ctx.strokeStyle = 'rgba(' + CREAM + ',' + po.toFixed(3) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pointer.x, pointer.y);
+          ctx.lineTo(pn.x, pn.y);
           ctx.stroke();
         }
       }
@@ -272,14 +287,31 @@
       }
       play();
 
+      /* The listener goes on the hero SECTION, not on .hero-bg.
+
+         .hero-bg is pointer-events:none (site.css) so that the
+         decorative layer never intercepts clicks on the CTAs sitting
+         above it - which also means it never receives pointermove,
+         so the handler that used to live here could not fire at all.
+         The old library sidestepped this by listening at the document
+         level. Listening on .hero keeps the scope tight and still
+         gets the events. */
+      var pointerHost = host.closest('.hero') || host.parentNode || host;
       if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-        host.addEventListener('pointermove', function (e) {
-          var r = host.getBoundingClientRect();
+        pointerHost.addEventListener('pointermove', function (e) {
+          /* Measured against the canvas, which is the coordinate
+             space the nodes live in. */
+          var r = canvas.getBoundingClientRect();
           pointer.x = e.clientX - r.left;
           pointer.y = e.clientY - r.top;
           pointer.live = true;
+          /* A stationary cursor over a paused field would leave the
+             grab lines unpainted; nothing else wakes the loop. */
+          if (!running) play();
         }, { passive: true });
-        host.addEventListener('pointerleave', function () { pointer.live = false; }, { passive: true });
+        pointerHost.addEventListener('pointerleave', function () {
+          pointer.live = false;
+        }, { passive: true });
       }
 
       /* A phone turning landscape more than doubles the hero's
