@@ -80,14 +80,19 @@ make sure something un-hides it, or add it to the reduced-motion block.
 
 ### Reduced motion
 
-`prefers-reduced-motion: reduce` is honoured. When it is set, `motion.js` drops
-`.gsap` and returns before registering a trigger, and TIER 7 of `site.css`
-resolves every hidden state to visible.
+**`prefers-reduced-motion: reduce` is not honoured.** Every visitor gets the full
+animated site regardless of their system setting. This is deliberate and
+requested, and the cost is worth stating plainly: Reduce Motion is switched on
+for vestibular disorders, migraine and seizure triggers, where motion produces
+physical symptoms rather than mild annoyance.
+
+To restore it, set `honoursReduce` back to `reduceQuery.matches` in `motion.js`
+**and** put back the `@media (prefers-reduced-motion: reduce)` block in
+`site.css` — TIER 7 there carries the full block, ready to paste.
 
 **The two layers must always agree.** CSS that suppresses motion while the engine
-is still driving it leaves elements frozen part-way through a tween — worse than
-either choice alone. The rule is: reduced motion removes *animation*, never
-*content*. The hero constellation still draws; it just stops drifting.
+is still driving it leaves elements frozen part-way through a tween, which is
+worse than either choice alone. If you restore it, restore both in one commit.
 
 ## Checks
 

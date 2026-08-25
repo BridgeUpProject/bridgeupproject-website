@@ -37,21 +37,28 @@
   var reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ----------------------------------------------------------
-     Reduced motion IS honoured, and the rule that makes it safe
-     is: reduced motion removes animation, never content.
+     Reduced motion is honoured NOWHERE. Every visitor gets the
+     full animated site regardless of their system setting.
 
-     When this is on, the engine never claims the page. `.gsap` is
-     dropped, so `.gsap [data-words]{visibility:hidden}` and the
-     GSAP-only reveal path never match, and site.css's reduced
-     motion block resolves every [data-reveal] to opacity 1 with
-     no transform. The page renders complete and still.
+     Requested, and the cost belongs in the code rather than only
+     in a chat log: Reduce Motion is switched on for vestibular
+     disorders, migraine and seizure triggers, where motion
+     produces physical symptoms - nausea, vertigo, headache -
+     rather than mild annoyance. Those visitors asked their
+     browser for less motion and this site declines.
 
-     Both layers must always agree. CSS that suppresses motion
-     while the engine still drives it leaves elements frozen
-     part-way through a tween - which is worse than either
-     choice made alone.
+     To restore the accessible behaviour, set this back to
+     `reduceQuery.matches` AND restore the
+     @media (prefers-reduced-motion: reduce) block removed from
+     site.css (see TIER 7 there). The two layers must agree: CSS
+     suppressing motion the engine is still driving leaves
+     elements frozen part-way through their animation, which is
+     worse than either choice made alone.
+
+     reduceQuery itself stays live below, because a mid-session
+     switch must not tear the page down.
      ---------------------------------------------------------- */
-  var honoursReduce = reduceQuery.matches;
+  var honoursReduce = false;
 
   var hasLibs = window.gsap && window.ScrollTrigger && window.SplitText &&
                 window.DrawSVGPlugin && window.ScrambleTextPlugin;
@@ -345,12 +352,23 @@
     return;
   }
 
-  /* __BU_MOTION_OK__ is deliberately NOT set here. Setting it at
-     this point disarms both remaining failsafes (the inline head
-     timeout and site.js's legacy handoff) before a single reveal
-     exists, so any throw in the init chain below would strand
-     every hidden element permanently. It is set once the chain
-     has actually resolved - see fontsReady.then. */
+  /* Claimed synchronously, and it has to be.
+
+     site.js loads immediately after this file and reads the flag
+     the moment it parses, to decide whether GSAP is driving or a
+     vendor script failed and the legacy engine should take over.
+     That check runs long before any async work here resolves, so
+     setting the flag later means site.js ALWAYS concludes failure:
+     it strips .gsap and runs its own engine alongside this one,
+     and the .js:not(.gsap) rules in site.css start matching and
+     fight the tweens. Two engines, one DOM.
+
+     Setting it here does disarm the inline <head> timeout early.
+     That is safe now because the recovery no longer depends on it:
+     the .catch() below hands the page back fully visible if any
+     init throws, and sweep() rescues anything still hidden at 4s -
+     including below the fold, which it used to skip. */
+  window.__BU_MOTION_OK__ = true;
 
   gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin);
   gsap.defaults({ ease: 'power3.out', duration: 0.8 });
@@ -565,9 +583,6 @@
     initFinePointer();
 
     ScrollTrigger.refresh();
-
-    /* Claimed only now, once the page demonstrably animates. */
-    window.__BU_MOTION_OK__ = true;
   }).catch(function (err) {
     /* An init threw. The engine owns hidden state that CSS cannot
        undo on its own, so hand the page back fully visible rather
@@ -1372,10 +1387,10 @@
     ), { clearProps: 'all' });
   }
 
-  /* Mid-session switch to Reduce Motion: stop everything and put
-     the DOM back. neutralize() adds .gsap-off, which is what the
-     CSS kill switch keys on to force every element visible. */
-  var onMotionChange = function (e) { if (e.matches) neutralize(); };
+  /* Nothing to do on a mid-session switch: the preference is not
+     honoured, so flipping it must not tear the page down. Kept
+     wired up so restoring honoursReduce restores this too. */
+  var onMotionChange = function (e) { if (e.matches && honoursReduce) neutralize(); };
   if (typeof reduceQuery.addEventListener === 'function') {
     reduceQuery.addEventListener('change', onMotionChange);
   } else if (typeof reduceQuery.addListener === 'function') {

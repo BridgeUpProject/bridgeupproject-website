@@ -27,31 +27,31 @@
    CONTENTS
      FONTS - self-hosted                                  L58
      TIER 0 — BASE                                        L113
-     The Bridge Up Project — polish & motion layer        L501
-     SCROLL REVEAL                                        L581
-     TEXT APPEARANCE — word-by-word headline reveal       L615
-     PARALLAX LAYERS                                      L639
-     NAV                                                  L714
-     BUTTONS — press feedback was missing everywhere      L781
-     CARDS — resting depth so they stop reading as flat o L799
-     MISSION — a gold hairline to anchor an otherwise bar L834
-     PROGRAM VISUAL — the bridge builds itself.           L850
-     FOOTER                                               L897
-     MOBILE — scroll-linked work now runs here too, at an L919
-     TIER 2 — depth, material, and alignment              L934
-     TIER 3 — adaptive layout                             L1112
-     NAV — every destination visible on desktop, one cont L1130
-     STATS — lead figure + stacked pair, replacing 3 equa L1173
-     CONNECT PATHS — two primary routes, one secondary.   L1384
-     PROGRAMS — let the card grid choose its own column c L1414
-     TABLET                                               L1423
-     PHONE                                                L1438
-     TIER 4 — cohesion                                    L1527
-     TIER 5 — GSAP engine handoff                         L1637
-     CTA CHOREOGRAPHY — "Span" (primary) and "Circuit" (s L1706
-     TIER 6 — CROSS-DEVICE FIDELITY                       L1840
-     TIER 7 — REDUCED MOTION                              L2037
-     TIER 8 — SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH    L2118
+     The Bridge Up Project — polish & motion layer        L510
+     SCROLL REVEAL                                        L590
+     TEXT APPEARANCE — word-by-word headline reveal       L624
+     PARALLAX LAYERS                                      L648
+     NAV                                                  L723
+     BUTTONS — press feedback was missing everywhere      L790
+     CARDS — resting depth so they stop reading as flat o L808
+     MISSION — a gold hairline to anchor an otherwise bar L843
+     PROGRAM VISUAL — the bridge builds itself.           L859
+     FOOTER                                               L906
+     MOBILE — scroll-linked work now runs here too, at an L928
+     TIER 2 — depth, material, and alignment              L943
+     TIER 3 — adaptive layout                             L1121
+     NAV — every destination visible on desktop, one cont L1139
+     STATS — lead figure + stacked pair, replacing 3 equa L1182
+     CONNECT PATHS — two primary routes, one secondary.   L1393
+     PROGRAMS — let the card grid choose its own column c L1423
+     TABLET                                               L1432
+     PHONE                                                L1447
+     TIER 4 — cohesion                                    L1536
+     TIER 5 — GSAP engine handoff                         L1646
+     CTA CHOREOGRAPHY — "Span" (primary) and "Circuit" (s L1715
+     TIER 6 — CROSS-DEVICE FIDELITY                       L1849
+     TIER 7 — REDUCED MOTION IS NOT HONOURED              L2046
+     TIER 8 — SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH    L2096
    ============================================================ */
 
 /* ============================================================
@@ -2043,85 +2043,54 @@ html{
 }
 
 /* ============================================================
-   TIER 7 — REDUCED MOTION
+   TIER 7 — REDUCED MOTION IS NOT HONOURED
 
-   The rule: reduced motion removes animation, never content.
+   The @media (prefers-reduced-motion: reduce) block that lived
+   here has been removed, and motion.js pins honoursReduce to
+   false. Every visitor gets the full animated site regardless of
+   their system setting.
 
-   Two layers have to agree or this gets worse, not better. CSS
-   that suppresses motion while the engine is still driving it
-   leaves elements frozen part-way through a tween. So:
+   Requested, and the cost belongs in the code rather than only in
+   a chat log: Reduce Motion is switched on for vestibular
+   disorders, migraine and seizure triggers, where motion produces
+   physical symptoms - nausea, vertigo, headache - rather than
+   mild annoyance. Those visitors asked their browser for less
+   motion and this site declines. Nothing here degrades for them.
 
-   motion.js sets honoursReduce = reduceQuery.matches. When it is
-   true the engine never claims the page — it drops `.gsap` and
-   returns before registering a single trigger, and site.js's
-   legacy engine calls stopEngine(). Nothing is animating by the
-   time the rules below apply.
+   To restore it, put back a block that resolves every hidden
+   state to visible BEFORE it touches any duration:
 
-   The block is ordered content-first deliberately. Every selector
-   that hides something for animation purposes is listed and
-   resolved before a single duration is touched, so there is no
-   window in which an element is both un-animated and invisible.
+     @media (prefers-reduced-motion: reduce){
+       .js [data-reveal],
+       .js [data-reveal].reveal-card,
+       .js .word-reveal .word,
+       .js [data-words],
+       .gsap [data-words],
+       .js .hero-inner,
+       .js:not(.gsap) .program-visual [class^="arc-"]{
+         opacity: 1 !important;
+         visibility: visible !important;
+         transform: none !important;
+         filter: none !important;
+       }
+       .js:not(.gsap) .program-visual .arc-span{
+         stroke-dasharray: none !important;
+         stroke-dashoffset: 0 !important;
+       }
+       *, *::before, *::after{
+         animation-duration: 1ms !important;
+         animation-iteration-count: 1 !important;
+         transition-duration: 1ms !important;
+         transition-delay: 0ms !important;
+       }
+       .hero-glow, .hero-arcline, .scroll-progress{ display: none; }
+     }
+
+   ...and flip honoursReduce in motion.js in the same commit. The
+   two layers must always agree: CSS that suppresses motion while
+   the engine is still driving it leaves elements frozen part-way
+   through a tween, which is worse than either choice alone.
    ============================================================ */
-@media (prefers-reduced-motion: reduce){
-
-  /* --- 1. Everything hidden for animation becomes visible. --- */
-  .js [data-reveal],
-  .js [data-reveal].reveal-card,
-  .js .word-reveal .word,
-  .js [data-words],
-  .gsap [data-words],
-  .js .hero-inner,
-  .js:not(.gsap) .program-visual [class^="arc-"]{
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  /* The bridge is drawn, not withheld. */
-  .js:not(.gsap) .program-visual .arc-span{
-    stroke-dasharray: none !important;
-    stroke-dashoffset: 0 !important;
-  }
-
-  /* --- 2. Only now, remove the motion. --- */
-  *,
-  *::before,
-  *::after{
-    animation-duration: 1ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-    transition-delay: 0ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* --- 3. Drop the ambient layer entirely. ---
-     These are decorative, they never carry meaning, and they are
-     the elements most likely to provoke symptoms: two radial
-     glows that breathe on a 9s and 12s loop, and a horizontally
-     parallaxed arcline. Removing them costs nothing a visitor
-     who asked for less motion wanted. */
-  .hero-glow,
-  .hero-arcline{ display: none; }
-
-  /* The scroll-progress rail reports position by moving. With no
-     scroll animation to track it is noise. */
-  .scroll-progress{ display: none; }
-
-  /* --- 4. Neutralise the parallax contract. ---
-     --drift is written by JS as a scroll-linked offset. The
-     engines are stopped, but pin it so a stale value cannot
-     displace anything. */
-  .js [data-reveal]{ --drift: 0px !important; }
-
-  /* will-change without animation is a compositor layer for
-     nothing. */
-  [data-parallax-y],
-  [data-parallax-x],
-  .js .word-reveal .word,
-  .cta-char{ will-change: auto !important; }
-}
 
 /* ============================================================
    TIER 8 — SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH
