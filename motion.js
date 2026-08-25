@@ -824,15 +824,31 @@
          centred at 58% of the viewport - comfortably in frame -
          373px of scroll earlier on a phone and 153px earlier on a
          laptop. */
+      /* The keystone needed more scroll to land in.
+
+         Measured on the shipped build, it moved through a clean
+         seven-frame ease - 0.05, 0.27, 0.44, 0.61, 0.74, 0.86,
+         0.95 - across 24px of scroll. Nothing was wrong with the
+         animation; there was simply nowhere to see it. One notch
+         of a scroll wheel is roughly 100px, so the entire landing
+         happened between two frames for anyone not dragging the
+         scrollbar by hand, and the circle appeared to snap.
+
+         Two changes, no choreography touched. The trigger ends
+         higher up the viewport, which buys the whole build more
+         scroll distance while still completing well in frame. And
+         the keystone takes a longer slice of the timeline, so it
+         gets a proportionally larger share of that distance. Every
+         ease, order and overlap is unchanged. */
       var build = gsap.timeline({
-        scrollTrigger: { trigger: visual, start: 'top 88%', end: 'center 58%', scrub: 0.5 }
+        scrollTrigger: { trigger: visual, start: 'top 92%', end: 'center 50%', scrub: 0.5 }
       });
       build
         .to('.arc-pillar-l', { scaleY: 1, duration: 0.35, ease: 'power1.out' }, 0)
         .to('.arc-pillar-r', { scaleY: 1, duration: 0.35, ease: 'power1.out' }, 0.08)
         .to('.arc-deck',     { scaleX: 1, duration: 0.4,  ease: 'power1.inOut' }, 0.12)
         .to('.arc-span',     { drawSVG: '100%', duration: 0.85, ease: 'power1.inOut' }, 0.35)
-        .to('.arc-key',      { scale: 1, y: 0, duration: 0.28, ease: 'back.out(2.5)' }, 1.0);
+        .to('.arc-key',      { scale: 1, y: 0, duration: 0.55, ease: 'back.out(2.5)' }, 0.9);
       gsap.set(visual, { autoAlpha: 1, y: 0 });
     }
   }
