@@ -134,23 +134,32 @@
       return { count: count, distance: Math.min(175, Math.max(88, distance)) };
     }
 
+    function makeNode(i) {
+      var a = Math.random() * Math.PI * 2;
+      var v = 0.14 + Math.random() * 0.14;
+      return {
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v,
+        r: 1.5 + Math.random() * 1.5,
+        a: 0.3 + Math.random() * 0.4,
+        /* One node in three is gold, matching the wordmark's
+           keystone against its cream span. */
+        c: (i % 3 === 2) ? GOLD : CREAM
+      };
+    }
+
     function seed(count) {
       nodes = [];
-      for (var i = 0; i < count; i++) {
-        var a = Math.random() * Math.PI * 2;
-        var v = 0.14 + Math.random() * 0.14;
-        nodes.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: Math.cos(a) * v,
-          vy: Math.sin(a) * v,
-          r: 1.5 + Math.random() * 1.5,
-          a: 0.3 + Math.random() * 0.4,
-          /* One node in three is gold, matching the wordmark's
-             keystone against its cream span. */
-          c: (i % 3 === 2) ? GOLD : CREAM
-        });
-      }
+      for (var i = 0; i < count; i++) nodes.push(makeNode(i));
+    }
+
+    /* Grow or shrink to the derived count without disturbing the
+       nodes already on screen. */
+    function fitCount(count) {
+      while (nodes.length > count) nodes.pop();
+      while (nodes.length < count) nodes.push(makeNode(nodes.length));
     }
 
     function resize() {
@@ -261,12 +270,43 @@
       if (rafId) { window.cancelAnimationFrame(rafId); rafId = 0; }
     }
 
-    function apply() {
+    /* apply(true) builds the field from nothing. apply(false) fits an
+       EXISTING field to a new box.
+
+       This distinction is the whole bug. apply() used to call seed()
+       unconditionally, which regenerates every node at a fresh random
+       position - and on a phone the collapsing URL bar fires resize
+       continuously while you scroll, so the entire constellation
+       teleported roughly every 250ms for the whole length of the
+       page. The library this replaced guarded against it by keying
+       on the derived count and refusing to refresh when it had not
+       changed; the guard did not survive the rewrite.
+
+       Now positions are carried into the new box proportionally, and
+       only the DIFFERENCE in node count is added or removed. A phone
+       turning landscape still re-derives its density - which is what
+       the derivation exists for - but it does so without resetting
+       anything the reader was already looking at. */
+    function apply(fresh) {
       var t = tune();
       reach = t.distance;
       grabReach = Math.round(t.distance * 1.06);
+
+      var pw = w, ph = h;
       resize();
-      seed(t.count);
+
+      if (fresh || !nodes.length) {
+        seed(t.count);
+      } else {
+        if (pw > 0 && ph > 0 && (pw !== w || ph !== h)) {
+          var sx = w / pw, sy = h / ph;
+          for (var i = 0; i < nodes.length; i++) {
+            nodes[i].x *= sx;
+            nodes[i].y *= sy;
+          }
+        }
+        fitCount(t.count);
+      }
       draw();
     }
 
@@ -296,7 +336,7 @@
       if (!ctx) return;
       host.appendChild(canvas);
 
-      apply();
+      apply(true);
 
       /* Reduce Motion draws the constellation once and stops. The
          nodes and links are content - they are the hero's bridge
@@ -365,14 +405,11 @@
       pointerHost.addEventListener('touchend', release, { passive: true });
       pointerHost.addEventListener('touchcancel', release, { passive: true });
 
-      /* A phone turning landscape more than doubles the hero's
-         area, which is precisely the case the derivation exists
-         for - so re-derive rather than stretch the old count
-         across the new box. */
+      /* Refit, never reseed. See apply() above for why. */
       var timer = 0;
       window.addEventListener('resize', function () {
         window.clearTimeout(timer);
-        timer = window.setTimeout(apply, 250);
+        timer = window.setTimeout(function () { apply(false); }, 250);
       });
     }
 
