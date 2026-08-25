@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Bridge Up Project: AI Pathways</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<!-- Fonts are self-hosted (see fonts/OFL.txt). Preloading the two
+     latin faces the site actually uses means they start downloading
+     alongside the stylesheet instead of after it, which is what
+     unblocks document.fonts.ready and with it every text animation. -->
+<link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="theme-color" content="#1D3F73">
 <link rel="icon" href="/bridge_up_project_logo.svg" type="image/svg+xml">
 <meta name="description" content="The Bridge Up Project teaches foster youth independence skills through AI literacy.">
 <meta property="og:title" content="The Bridge Up Project: AI Pathways">
@@ -40,7 +44,6 @@ window.setTimeout(function(){
 <script src="/vendor/motion-mini.min.js" defer></script>
 <script src="/vendor/anime.min.js" defer></script>
 <script src="/vendor/lenis.min.js" defer></script>
-<script src="/vendor/tsparticles.bundle.min.js" defer></script>
 <script src="/vendor/rough-notation.iife.js" defer></script>
 <script src="/motion.js" defer></script>
 <script src="/site.js" defer></script>
@@ -82,7 +85,7 @@ window.setTimeout(function(){
 
 <nav>
   <a href="/" class="nav-logo">
-    <svg viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <rect x="8" y="70" width="10" height="70" fill="#1161A8"/>
       <rect x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
       <rect x="0" y="130" width="160" height="8" fill="#1161A8"/>
@@ -124,7 +127,7 @@ window.setTimeout(function(){
       <a class="btn-secondary" href="/connect">Connect With Us</a>
     </div>
   </div>
-  <div class="hero-arc"></div>
+  <div class="hero-arc" aria-hidden="true"></div>
 </section>
 
 <div class="stats-wrap">
@@ -171,7 +174,7 @@ window.setTimeout(function(){
     </div>
     <div class="visual-shell">
      <div class="program-visual" data-reveal>
-      <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
         <rect class="arc-pillar arc-pillar-l" x="8" y="70" width="10" height="70" fill="#E9BE3F"/>
         <rect class="arc-pillar arc-pillar-r" x="142" y="70" width="10" height="70" fill="#E9BE3F"/>
         <rect class="arc-deck" x="0" y="130" width="160" height="8" fill="#3A4A66"/>
@@ -186,12 +189,16 @@ window.setTimeout(function(){
 </main>
 
 <footer>
-  <div>© 2026 The Bridge Up Project: AI Pathways.</div>
-  <div class="footer-links">
-    <a href="/about">About</a>
-    <a href="/programs">Programs</a>
-    <a href="/connect">Connect</a>
+  <div class="footer-mark">
+    <span class="footer-name">The Bridge Up Project</span>
+    <span class="footer-legal">&copy; 2026 The Bridge Up Project: AI Pathways.</span>
   </div>
+  <nav class="footer-links" aria-label="Footer">
+    <a href="/" aria-current="page">Home</a>
+    <a href="/programs">Programs</a>
+    <a href="/about">About Us</a>
+    <a href="/connect">Connect With Us</a>
+  </nav>
 </footer>
 
 </body>

@@ -134,13 +134,17 @@
        intersection never arrived — IntersectionObserver does not fire
        while the document is hidden (background tab, prerender, an
        occluded window), and a page that loads in that state would
-       otherwise render blank. Sweeping only what is already at or above
-       the fold keeps the scroll animation intact for everything below. */
+       otherwise render blank.
+
+       This used to sweep only what was already at or above the fold,
+       to keep the scroll animation intact for everything below. That
+       trade is wrong: below-fold elements are precisely the ones left
+       hidden when the observer never ran at all. Three seconds after
+       load, unrevealed content is a bug, not an animation waiting its
+       turn. */
     var sweep = function () {
-      var vh = window.innerHeight;
       Array.prototype.forEach.call(targets, function (el) {
         if (el.classList.contains('is-visible')) return;
-        if (el.getBoundingClientRect().top >= vh) return;
         el.classList.add('is-visible');
         if (el.classList.contains('drift-col')) el.classList.add('drift-live');
         observer.unobserve(el);
@@ -348,7 +352,97 @@
   }
 
   /* ----------------------------------------------------------
-     6. In-page anchors: honour reduced-motion, land clear of nav.
+     7. Copy to clipboard.
+
+        Every call to action on this site is a mailto: link, and a
+        mailto: link does nothing visible on a machine with no mail
+        client configured - which on mobile web is a real share of
+        visitors. They click, nothing happens, and they leave. The
+        address is printed next to every button for that reason,
+        and this makes it one tap to take.
+
+        Feedback is the whole point of a copy control, so the
+        button reports success in its own label and announces it
+        once via a live region. The label reverts after two
+        seconds; the width is pinned in CSS so the card does not
+        reflow when "Copy" becomes "Copied".
+     ---------------------------------------------------------- */
+  var copyButtons = document.querySelectorAll('.copy-btn');
+  if (copyButtons.length) {
+    var announcer = document.createElement('div');
+    announcer.setAttribute('role', 'status');
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.className = 'sr-only';
+    document.body.appendChild(announcer);
+
+    var legacyCopy = function (text) {
+      /* Clipboard API needs a secure context. Without this branch
+         the control silently fails on plain http, which is exactly
+         the local-preview case. */
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:absolute;left:-9999px;top:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      return ok ? Promise.resolve() : Promise.reject(new Error('copy failed'));
+    };
+
+    Array.prototype.forEach.call(copyButtons, function (btn) {
+      var label = btn.querySelector('.copy-label');
+      var value = btn.getAttribute('data-copy');
+      var timer = 0;
+
+      var settle = function (state, text) {
+        window.clearTimeout(timer);
+        btn.setAttribute('data-state', state);
+        label.textContent = text;
+        announcer.textContent = state === 'done'
+          ? value + ' copied to clipboard'
+          : 'Could not copy. Select the address to copy it manually.';
+        timer = window.setTimeout(function () {
+          btn.removeAttribute('data-state');
+          label.textContent = 'Copy';
+          announcer.textContent = '';
+        }, 2000);
+      };
+
+      btn.addEventListener('click', function () {
+        var write = (navigator.clipboard && window.isSecureContext)
+          ? navigator.clipboard.writeText(value)
+          : legacyCopy(value);
+
+        write.then(function () {
+          settle('done', 'Copied');
+        }).catch(function () {
+          /* Never pretend it worked. */
+          settle('error', 'Select it');
+        });
+      });
+    });
+  }
+
+  /* ----------------------------------------------------------
+     6. In-page anchors: move focus, not just the viewport.
+
+        Scrolling to a target without moving focus is the classic
+        skip-link failure. A keyboard user activates "Skip to
+        content", the page scrolls, and their next Tab continues
+        from the nav they were trying to escape. The scroll is for
+        sighted users; the focus move is the actual feature.
+
+        Targets are not natively focusable, so they get
+        tabindex="-1" at the moment of use rather than sitting in
+        the markup. preventScroll keeps the browser from undoing
+        the smooth scroll we just asked for.
+
+        When Lenis is running it owns the scroll (constructed with
+        anchors:true), so we let it. Calling scrollIntoView here as
+        well put native smooth scrolling and Lenis's rAF loop in a
+        fight over the same scrollTop — the visible jank on desktop.
      ---------------------------------------------------------- */
   Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'), function (link) {
     link.addEventListener('click', function (e) {
@@ -356,11 +450,24 @@
       if (!id || id === '#') return;
       var target = document.querySelector(id);
       if (!target) return;
+
+      var focusTarget = function () {
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+      };
+
+      if (window.__BU_LENIS__) {
+        /* Lenis handles the travel; we only add the focus move. */
+        window.setTimeout(focusTarget, 0);
+        return;
+      }
+
       e.preventDefault();
       /* Read the live value: the listener that refreshes reduceMotion
          belongs to the legacy engine and is absent in gsap mode. */
       target.scrollIntoView({ behavior: motionQuery.matches ? 'auto' : 'smooth', block: 'start' });
       history.replaceState(null, '', id);
+      focusTarget();
     });
   });
 })();

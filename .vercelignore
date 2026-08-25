@@ -1,4 +1,17 @@
-# Tooling, not site content. The Vercel project serves the repo root as-is
-# (outputDirectory "."), so anything not excluded here is publicly fetchable.
+# The Vercel project serves the repo root as-is (outputDirectory "."),
+# so anything NOT excluded here is publicly fetchable at the domain.
+# That is the whole reason this file matters: without these lines,
+# https://bridgeupproject.org/package.json and /server.js are live.
+
+# Tooling, not site content
 scripts/
 .githooks/
+
+# Source metadata that should not be served
+README.md
+package.json
+package-lock.json
+node_modules/
+
+# Dev-only static server; Vercel serves the files itself
+server.js

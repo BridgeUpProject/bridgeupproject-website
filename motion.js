@@ -37,28 +37,21 @@
   var reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ----------------------------------------------------------
-     Reduced motion is honoured NOWHERE. Every visitor gets the
-     full animated site regardless of their system setting.
+     Reduced motion IS honoured, and the rule that makes it safe
+     is: reduced motion removes animation, never content.
 
-     Requested, and the cost belongs in the code rather than only
-     in a chat log: Reduce Motion is switched on for vestibular
-     disorders, migraine and seizure triggers, where motion
-     produces physical symptoms - nausea, vertigo, headache -
-     rather than mild annoyance. Those visitors asked their
-     browser for less motion and this site declines.
+     When this is on, the engine never claims the page. `.gsap` is
+     dropped, so `.gsap [data-words]{visibility:hidden}` and the
+     GSAP-only reveal path never match, and site.css's reduced
+     motion block resolves every [data-reveal] to opacity 1 with
+     no transform. The page renders complete and still.
 
-     To restore the accessible behaviour, set this back to
-     `reduceQuery.matches` AND restore the five
-     prefers-reduced-motion blocks removed from site.css (see
-     TIER 8 there). The two layers must agree: CSS suppressing
-     motion the engine is still driving leaves elements frozen
-     part-way through their animation.
-
-     reduceQuery itself is still live below, because a mid-session
-     switch must not tear the page down any more.
+     Both layers must always agree. CSS that suppresses motion
+     while the engine still drives it leaves elements frozen
+     part-way through a tween - which is worse than either
+     choice made alone.
      ---------------------------------------------------------- */
-  var finePointer   = window.matchMedia('(hover: hover) and (pointer: fine)');
-  var honoursReduce = false;
+  var honoursReduce = reduceQuery.matches;
 
   var hasLibs = window.gsap && window.ScrollTrigger && window.SplitText &&
                 window.DrawSVGPlugin && window.ScrambleTextPlugin;
@@ -68,8 +61,8 @@
 
      The constellation is the hero's "bridge" motif rendered
      literally: it is identity, not decoration. It also happens to
-     need nothing from GSAP — only tsParticles — so there was never
-     a technical reason for it to sit behind the gate.
+     need nothing from GSAP — it is a canvas of its own — so there
+     was never a technical reason for it to sit behind the gate.
 
      It did, though, and the cost was severe. Returning early for
      prefers-reduced-motion took the constellation out of the page
@@ -88,10 +81,8 @@
      constellation, not an empty hero.
      ---------------------------------------------------------- */
   var constellation = (function () {
-    var container = null;
-
-    /* Density is DERIVED, not fixed. The tuned look — 44 nodes
-       linking at 160px — was measured in a 1440x539 hero: one node
+    /* Density is DERIVED, not fixed. The tuned look - 44 nodes
+       linking at 160px - was measured in a 1440x539 hero: one node
        per ~17,600 square px, link reach ~1.2x the mean spacing
        between nodes. Ship those constants unchanged to a 390x409
        phone hero and the area collapses to a fifth while count and
@@ -100,14 +91,22 @@
 
        Holding node DENSITY constant overshoots the other way (9
        nodes on a phone reads as empty), so count follows the
-       hero's linear dimension — the square root of the area ratio
-       — and the reach is re-derived from the spacing that implies.
+       hero's linear dimension - the square root of the area ratio
+       - and the reach is re-derived from the spacing that implies.
        Both expressions return 44 and 160 exactly at 1440x539, so
        the laptop look is untouched. */
     var REF_AREA  = 1440 * 539;
     var REF_COUNT = 44;
     var REACH     = 1.205;
-    var host      = null;
+
+    var CREAM = '250, 248, 244';
+    var GOLD  = '233, 190, 63';
+
+    var host = null, canvas = null, ctx = null;
+    var nodes = [], w = 0, h = 0, dpr = 1, reach = 160;
+    var running = false, rafId = 0, visible = true;
+    var pointer = { x: -1e4, y: -1e4, live: false };
+    var grabReach = 170;
 
     function tune() {
       var r = host.getBoundingClientRect();
@@ -118,64 +117,179 @@
       return { count: count, distance: Math.min(175, Math.max(88, distance)) };
     }
 
+    function seed(count) {
+      nodes = [];
+      for (var i = 0; i < count; i++) {
+        var a = Math.random() * Math.PI * 2;
+        var v = 0.14 + Math.random() * 0.14;
+        nodes.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: Math.cos(a) * v,
+          vy: Math.sin(a) * v,
+          r: 1.5 + Math.random() * 1.5,
+          a: 0.3 + Math.random() * 0.4,
+          /* One node in three is gold, matching the wordmark's
+             keystone against its cream span. */
+          c: (i % 3 === 2) ? GOLD : CREAM
+        });
+      }
+    }
+
+    function resize() {
+      var r = host.getBoundingClientRect();
+      w = Math.max(Math.round(r.width), 1);
+      h = Math.max(Math.round(r.height), 1);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width  = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width  = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+
+      /* Links first so nodes sit on top of their own threads. */
+      var reach2 = reach * reach;
+      var grab2  = grabReach * grabReach;
+      for (var i = 0; i < nodes.length; i++) {
+        var a = nodes[i];
+        for (var j = i + 1; j < nodes.length; j++) {
+          var b  = nodes[j];
+          var dx = a.x - b.x, dy = a.y - b.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 > reach2) continue;
+
+          /* Fade with distance so the mesh has depth rather than
+             a hard cut-off at the reach radius. */
+          var o = 0.22 * (1 - Math.sqrt(d2) / reach);
+
+          /* Grab: threads near the cursor brighten. Reads as the
+             constellation noticing you, without moving anything. */
+          if (pointer.live) {
+            var mx = (a.x + b.x) / 2 - pointer.x;
+            var my = (a.y + b.y) / 2 - pointer.y;
+            var m2 = mx * mx + my * my;
+            if (m2 < grab2) o += 0.16 * (1 - Math.sqrt(m2) / grabReach);
+          }
+          if (o <= 0.004) continue;
+
+          ctx.strokeStyle = 'rgba(' + CREAM + ',' + o.toFixed(3) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      for (var k = 0; k < nodes.length; k++) {
+        var n = nodes[k];
+        ctx.fillStyle = 'rgba(' + n.c + ',' + n.a + ')';
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function step() {
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        n.x += n.vx;
+        n.y += n.vy;
+        /* Wrap rather than bounce: a bounce reads as a wall, and
+           the hero has no walls. */
+        if (n.x < -8) n.x = w + 8; else if (n.x > w + 8) n.x = -8;
+        if (n.y < -8) n.y = h + 8; else if (n.y > h + 8) n.y = -8;
+      }
+      draw();
+      rafId = window.requestAnimationFrame(step);
+    }
+
+    function play() {
+      if (running || !visible || honoursReduce) return;
+      running = true;
+      rafId = window.requestAnimationFrame(step);
+    }
+
+    function pause() {
+      running = false;
+      if (rafId) { window.cancelAnimationFrame(rafId); rafId = 0; }
+    }
+
+    function apply() {
+      var t = tune();
+      reach = t.distance;
+      grabReach = Math.round(t.distance * 1.06);
+      resize();
+      seed(t.count);
+      draw();
+    }
+
+    /* ----------------------------------------------------------
+       Why this is hand-written rather than a library.
+
+       This replaced a 183 KB particle bundle that was 40% of the
+       homepage's JavaScript and existed to draw one field of dots
+       and lines. The derivation above is the only part that was
+       ever hard, and it is unchanged.
+
+       The bundle also could not do the two things this hero
+       actually needs: stop completely when scrolled out of view,
+       and draw a single static frame under Reduce Motion without
+       keeping a rAF loop alive to do it.
+       ---------------------------------------------------------- */
     function build() {
-      /* The v3 bundle exposes loadFull but does NOT auto-register
-         its plugins — without that call particles simulate yet
-         never draw. */
-      if (!window.tsParticles || !window.loadFull) return;
       host = document.querySelector('.hero-bg');
       if (!host) return;
+      if (!window.requestAnimationFrame) return;
 
-      var el = document.createElement('div');
-      el.id = 'hero-net';
-      el.style.cssText = 'position:absolute;inset:0;';
-      host.appendChild(el);
+      canvas = document.createElement('canvas');
+      canvas.id = 'hero-net';
+      canvas.setAttribute('aria-hidden', 'true');
+      canvas.style.cssText = 'position:absolute;inset:0;display:block;';
+      ctx = canvas.getContext && canvas.getContext('2d');
+      if (!ctx) return;
+      host.appendChild(canvas);
 
-      var t     = tune();
-      var still = honoursReduce;
+      apply();
 
-      window.loadFull(tsParticles).then(function () {
-        return tsParticles.load({ id: 'hero-net', options: {
-          fullScreen: { enable: false },
-          fpsLimit: 60,
-          detectRetina: true,
-          pauseOnOutsideViewport: true,
-          particles: {
-            number: { value: t.count, density: { enable: false } },
-            color: { value: ['#FAF8F4', '#FAF8F4', '#E9BE3F'] },
-            opacity: { value: { min: 0.3, max: 0.7 } },
-            size: { value: { min: 1.5, max: 3 } },
-            links: { enable: true, color: '#FAF8F4', opacity: 0.22, distance: t.distance, width: 1 },
-            /* the two conditional lines in the whole config */
-            move: { enable: !still, speed: 0.55, direction: 'none', outModes: { default: 'out' } }
-          },
-          interactivity: {
-            events: { onHover: { enable: !still, mode: 'grab' }, resize: { enable: true } },
-            modes: { grab: { distance: Math.round(t.distance * 1.06), links: { opacity: 0.38 } } }
-          }
-        } });
-      }).then(function (c) {
-        container = c;
+      /* Reduce Motion draws the constellation once and stops. The
+         nodes and links are content - they are the hero's bridge
+         motif rendered literally - so they stay. Only the drift
+         and the pointer response are the preference's business. */
+      if (honoursReduce) return;
 
-        /* A phone turning landscape more than doubles the hero's
-           area, which is precisely the case the derivation exists
-           for — so re-derive rather than stretch the old count
-           across the new box. */
-        var applied = t.count + ':' + t.distance;
-        var timer   = 0;
-        window.addEventListener('resize', function () {
-          window.clearTimeout(timer);
-          timer = window.setTimeout(function () {
-            if (!container) return;
-            var n = tune();
-            var key = n.count + ':' + n.distance;
-            if (key === applied) return;
-            applied = key;
-            container.options.particles.number.value   = n.count;
-            container.options.particles.links.distance = n.distance;
-            container.refresh();
-          }, 250);
-        });
+      if (window.IntersectionObserver) {
+        new window.IntersectionObserver(function (entries) {
+          visible = entries[0].isIntersecting;
+          if (visible) play(); else pause();
+        }, { threshold: 0 }).observe(host);
+      } else {
+        play();
+      }
+      play();
+
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        host.addEventListener('pointermove', function (e) {
+          var r = host.getBoundingClientRect();
+          pointer.x = e.clientX - r.left;
+          pointer.y = e.clientY - r.top;
+          pointer.live = true;
+        }, { passive: true });
+        host.addEventListener('pointerleave', function () { pointer.live = false; }, { passive: true });
+      }
+
+      /* A phone turning landscape more than doubles the hero's
+         area, which is precisely the case the derivation exists
+         for - so re-derive rather than stretch the old count
+         across the new box. */
+      var timer = 0;
+      window.addEventListener('resize', function () {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(apply, 250);
       });
     }
 
@@ -183,10 +297,9 @@
        the picture. Destroying it here would reintroduce exactly
        the blank hero this module exists to prevent. */
     function freeze() {
-      if (!container) return;
-      container.options.particles.move.enable = false;
-      container.options.interactivity.events.onHover.enable = false;
-      container.refresh();
+      pause();
+      pointer.live = false;
+      if (ctx) draw();
     }
 
     return { build: build, freeze: freeze };
@@ -200,7 +313,12 @@
     return;
   }
 
-  window.__BU_MOTION_OK__ = true;
+  /* __BU_MOTION_OK__ is deliberately NOT set here. Setting it at
+     this point disarms both remaining failsafes (the inline head
+     timeout and site.js's legacy handoff) before a single reveal
+     exists, so any throw in the init chain below would strand
+     every hidden element permanently. It is set once the chain
+     has actually resolved - see fontsReady.then. */
 
   gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin);
   gsap.defaults({ ease: 'power3.out', duration: 0.8 });
@@ -274,8 +392,19 @@
     if (glows.length && tl) {
       tl.from(glows, { autoAlpha: 0, scale: 0.65, duration: 1.6, ease: 'expo.out', stagger: 0.15 }, 0);
     }
+    /* These two loops run forever with repeat: -1, on all four
+       pages. Because they never finish, GSAP's ticker never idles,
+       so the browser holds a rAF loop open for the life of every
+       page - and Lenis, which is driven from that same ticker,
+       gets called sixty times a second whether or not anything is
+       scrolling. On a laptop that is invisible; on a phone it is
+       battery spent on two blurred ellipses nobody is looking at.
+
+       ScrollTrigger pauses each tween when its glow leaves the
+       viewport and resumes on the way back, which lets the ticker
+       actually go quiet once the hero is scrolled past. */
     glows.forEach(function (g, i) {
-      gsap.to(g, {
+      var breathe = gsap.to(g, {
         scale: 1.12,
         xPercent: i % 2 ? 5 : -4,
         yPercent: i % 2 ? -4 : 3,
@@ -283,8 +412,22 @@
         yoyo: true,
         repeat: -1,
         ease: 'sine.inOut',
-        delay: 1.5
+        delay: 1.5,
+        paused: true
       });
+
+      var hostSection = g.closest('.hero, .page-header') || g;
+      ScrollTrigger.create({
+        trigger: hostSection,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: function (self) {
+          if (self.isActive) breathe.play(); else breathe.pause();
+        }
+      });
+
+      /* Above the fold on load, so start it. */
+      if (hostSection.getBoundingClientRect().top < window.innerHeight) breathe.play();
     });
     /* Travel is scaled to the viewport rather than shipped as the
        same pixel count everywhere. 220px and 160px were chosen
@@ -373,6 +516,11 @@
   fontsReady.then(function () {
     if (root.classList.contains('gsap-off')) return;
 
+    /* Reveals first. Everything after this line is enhancement;
+       if one of them throws, the page is already readable. */
+    initReveals();
+    initDrift();
+
     initLenis();
     initHero();
     initPageHeader();
@@ -382,11 +530,19 @@
     initProgram();
     initSessionCards();
     initBio();
-    initReveals();
-    initDrift();
     initFinePointer();
 
     ScrollTrigger.refresh();
+
+    /* Claimed only now, once the page demonstrably animates. */
+    window.__BU_MOTION_OK__ = true;
+  }).catch(function (err) {
+    /* An init threw. The engine owns hidden state that CSS cannot
+       undo on its own, so hand the page back fully visible rather
+       than leaving anything stranded at opacity 0. */
+    if (window.console && console.error) console.error('[bridge-up] motion init failed', err);
+    try { neutralize(); } catch (e) {}
+    root.classList.remove('gsap');
   });
 
 
@@ -507,8 +663,16 @@
           return /^\d+$/.test(part) ? Math.round(parseInt(part, 10) * state.p) : part;
         }).join('');
       };
-      render();
 
+      /* The authored figure stays on screen until the count-up
+         actually starts.
+
+         Rendering at p=0 up front (which this did) rewrites
+         "+69%" to "+0%" the moment the script runs, and leaves it
+         there for good if the trigger never fires. These are cited
+         statistics about real children in foster care. A number
+         that animates is worth something; a number that can read
+         zero is worth less than no animation at all. */
       ScrollTrigger.create({
         trigger: el,
         start: 'top 86%',
@@ -518,6 +682,7 @@
             p: 1,
             duration: 1.6,
             ease: 'power2.out',
+            onStart: render,
             onUpdate: render,
             onComplete: function () { el.textContent = original; }
           });
@@ -1071,17 +1236,32 @@
         on(btn, 'blur', function () { c.focus = false; sync(); });
       });
 
-      /* Cards tip subtly toward the cursor. */
+      /* Cards tip subtly toward the cursor.
+
+         The rect is measured on enter and cached, not read inside
+         mousemove. getBoundingClientRect() forces a synchronous
+         layout flush, and calling it on every pointer frame is
+         exactly the pattern that was removed from the CTAs above
+         for that reason - it just never got removed here. It costs
+         most on /programs, where eight cards are doing it while a
+         scrub is running.
+
+         Scroll invalidates the cached top, so the enter handler
+         re-measures each time and a scroll listener is not needed. */
       qa('.path-card, .session-card, .stat-card').forEach(function (card) {
         gsap.set(card, { transformPerspective: 850 });
         var rxTo = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power2.out' });
         var ryTo = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power2.out' });
+        var rect = null;
+
+        on(card, 'mouseenter', function () { rect = card.getBoundingClientRect(); });
         on(card, 'mousemove', function (e) {
-          var r = card.getBoundingClientRect();
-          rxTo(((e.clientY - r.top) / r.height - 0.5) * -5);
-          ryTo(((e.clientX - r.left) / r.width - 0.5) * 5);
+          if (!rect) rect = card.getBoundingClientRect();
+          rxTo(((e.clientY - rect.top) / rect.height - 0.5) * -5);
+          ryTo(((e.clientX - rect.left) / rect.width - 0.5) * 5);
         });
         on(card, 'mouseleave', function () {
+          rect = null;
           rxTo(0);
           ryTo(0);
         });
@@ -1116,13 +1296,19 @@
      Failsafes.
      ---------------------------------------------------------- */
 
-  /* Content must never be stranded invisible: sweep anything at
-     or above the fold that is still hidden after settle time. */
+  /* Content must never be stranded invisible.
+
+     This used to skip anything below the fold, on the theory that
+     its ScrollTrigger had simply not fired yet. That is true in
+     the healthy case and false in exactly the case a failsafe is
+     for: if the batch never got created, below-fold elements are
+     the ones that stay hidden forever. So sweep everything, and
+     let the still-pending triggers no-op on already-visible
+     elements instead. */
   function sweep() {
     qa('[data-reveal], [data-words]').forEach(function (el) {
       var style = window.getComputedStyle(el);
       if (style.opacity !== '0' && style.visibility !== 'hidden') return;
-      if (el.getBoundingClientRect().top >= window.innerHeight) return;
       gsap.set(el, { autoAlpha: 1, y: 0, clearProps: 'filter' });
     });
   }
@@ -1154,10 +1340,10 @@
     ), { clearProps: 'all' });
   }
 
-  /* Nothing to do on a mid-session switch: the preference is not
-     honoured, so flipping it must not tear the page down. Kept
-     wired up so restoring honoursReduce restores this too. */
-  var onMotionChange = function (e) { if (e.matches && honoursReduce) neutralize(); };
+  /* Mid-session switch to Reduce Motion: stop everything and put
+     the DOM back. neutralize() adds .gsap-off, which is what the
+     CSS kill switch keys on to force every element visible. */
+  var onMotionChange = function (e) { if (e.matches) neutralize(); };
   if (typeof reduceQuery.addEventListener === 'function') {
     reduceQuery.addEventListener('change', onMotionChange);
   } else if (typeof reduceQuery.addListener === 'function') {

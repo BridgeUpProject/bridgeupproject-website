@@ -1,4 +1,115 @@
 /* ============================================================
+   site.css - The Bridge Up Project
+
+   One stylesheet, no build step. Read this first.
+
+   HOW THIS FILE IS ORGANISED
+
+   TIER 0 holds the base styles and MUST STAY FIRST: everything
+   below is written to override it at equal specificity. Later
+   tiers are corrections layered on top rather than edits in
+   place, so source order is load-bearing. Do not reorder.
+
+   All design tokens live in a single :root at the top - colour,
+   type scale, leading, tracking, spacing, radii, shadows,
+   z-index. Change them there, not at the point of use.
+
+   TWO CONTRACTS THAT WILL BREAK THINGS IF IGNORED
+
+   1. Anything hidden for animation must be gated behind .js on
+      <html> AND resolved by the reduced-motion block in TIER 7.
+      CSS that hides what the engine no longer reveals strands
+      content invisible. See TIER 5 and TIER 7.
+
+   2. The nav and footer are duplicated across four HTML files.
+      scripts/check-chrome.js blocks commits where they drift.
+
+   CONTENTS
+     FONTS - self-hosted                                  L58
+     TIER 0 — BASE                                        L113
+     The Bridge Up Project — polish & motion layer        L501
+     SCROLL REVEAL                                        L581
+     TEXT APPEARANCE — word-by-word headline reveal       L615
+     PARALLAX LAYERS                                      L639
+     NAV                                                  L714
+     BUTTONS — press feedback was missing everywhere      L781
+     CARDS — resting depth so they stop reading as flat o L799
+     MISSION — a gold hairline to anchor an otherwise bar L834
+     PROGRAM VISUAL — the bridge builds itself.           L850
+     FOOTER                                               L897
+     MOBILE — scroll-linked work now runs here too, at an L919
+     TIER 2 — depth, material, and alignment              L934
+     TIER 3 — adaptive layout                             L1112
+     NAV — every destination visible on desktop, one cont L1130
+     STATS — lead figure + stacked pair, replacing 3 equa L1173
+     CONNECT PATHS — two primary routes, one secondary.   L1384
+     PROGRAMS — let the card grid choose its own column c L1414
+     TABLET                                               L1423
+     PHONE                                                L1438
+     TIER 4 — cohesion                                    L1527
+     TIER 5 — GSAP engine handoff                         L1637
+     CTA CHOREOGRAPHY — "Span" (primary) and "Circuit" (s L1706
+     TIER 6 — CROSS-DEVICE FIDELITY                       L1840
+     TIER 7 — REDUCED MOTION                              L2037
+     TIER 8 — SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH    L2118
+   ============================================================ */
+
+/* ============================================================
+   FONTS - self-hosted
+
+   Google Fonts was the last third-party runtime dependency on a
+   site that self-hosts everything else. It cost more than a
+   request: the <link> is a render-blocking stylesheet from
+   another origin, and motion.js gates every text animation on
+   document.fonts.ready, so a slow font response stalled the whole
+   choreography up to its 2.5s cap.
+
+   Both families are SIL Open Font License 1.1, which permits
+   redistribution; see fonts/OFL.txt. Variable woff2, latin and
+   latin-ext only - the site is lang="en" and the other subsets
+   were never going to be requested.
+
+   font-display: swap is kept: text renders immediately in the
+   fallback and reflows once, which beats invisible text.
+   ============================================================ */
+
+@font-face{
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face{
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face{
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face{
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ============================================================
  TIER 0 — BASE
  Was duplicated inline in all four HTML files. Consolidated here.
 
@@ -17,57 +128,183 @@
  ============================================================ */
 
 
+/* ------------------------------------------------------------
+   TOKENS
+
+   Consolidated from four separate :root blocks that had
+   accumulated at lines 20, 231, 623 and 1039. A designer looking
+   for "the tokens" would find the palette and stop, then hard-code
+   the rest - which is exactly what happened: nine text colours and
+   twenty-five rgba() tuples were written by hand elsewhere in this
+   file. They are all named here now.
+   ------------------------------------------------------------ */
 :root{
-  --ink: #1161A8;
-  --steel: #2B5291;
-  --gold: #E9BE3F;
-  --paper: #FAF8F4;
-  --paper-dark: #1D3F73;
-  --line: #DCD5C8;
+  /* --- Brand. Unchanged, and not up for negotiation. --- */
+  --ink:        #1161A8;   /* cobalt: headings, primary text */
+  --steel:      #2B5291;   /* accent blue: figures, mid-tone */
+  --gold:       #E9BE3F;   /* accent: CTAs, eyebrows, keystone */
+  /* Gold is a surface colour, not a text colour. #E9BE3F reads at
+     5.9:1 on the navy hero and 1.66:1 on cream - the same token on
+     the two backgrounds this site actually uses, one passing
+     comfortably and one failing badly. Eyebrows set on light
+     surfaces use this darker member of the same family instead
+     (4.7:1 on cream, 5.0:1 on white). */
+  --gold-ink:   #8C6B0E;
+  --paper:      #FAF8F4;   /* page background */
+  --paper-dark: #1D3F73;   /* deep navy: hero, footer */
+  --line:       #DCD5C8;   /* hairline */
+  --surface:    #FFFFFF;   /* card fill */
+
+  /* --- Text. Every value here was previously a literal hex
+         repeated across TIER 0. Two were below AA and have been
+         darkened; see the contrast note in TIER 9. --- */
+  --text-strong:    var(--ink);
+  --text-body:      #3D4657;   /* long-form reading copy */
+  --text-muted:     #545D6E;   /* card body, list items (was #565f6e) */
+  --text-faint:     #666E7C;   /* source attributions (was #9aa2ae at 2.6:1) */
+  --text-on-dark:   #F4EFE4;
+  --text-on-dark-muted: #C6D0E2;
+  --text-on-dark-faint: #A3B0C8;   /* footer (was #8792A8 at 3.6:1) */
+  --border-on-dark: #5A6B87;
+
+  /* --- Typography ---
+         Families first. Fraunces carries an opsz axis, so the
+         display roles opt into optical sizing rather than
+         rendering one master at every size. */
+  --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* Line heights. Previously FOUR declarations covered ~40 text
+     roles, so every display heading inherited body's 1.55 - which
+     is why .page-header h1 at 44.8px ran looser than .hero h1 at
+     54.4px. Leading now tightens as size grows, which is the way
+     round it should have been. */
+  --leading-display: 1.08;
+  --leading-heading: 1.2;
+  --leading-title:   1.32;
+  --leading-body:    1.6;
+  --leading-tight:   1.45;
+
+  /* Tracking ramp: bigger is tighter. */
+  --track-display: -0.018em;
+  --track-heading: -0.012em;
+  --track-title:   -0.005em;
+  --track-body:     0;
+  --track-label:    0.16em;
+
+  /* --- Spacing. An 8px base with two half-steps for control
+         detail. Replaces a near-continuous run of magic numbers
+         from 8 to 34 where nearly every even value appeared. --- */
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs:  12px;
+  --space-sm:  16px;
+  --space-md:  24px;
+  --space-lg:  32px;
+  --space-xl:  48px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+
+  /* Card padding, one pair, applied to all three card types.
+     They previously used 34/30, 32/30 and 34/28. */
+  --pad-card: clamp(26px, 2.6vw, 34px) clamp(24px, 2.4vw, 32px);
+
+  /* --- Motion --- */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --dur-press:  140ms;
+  --dur-hover:  200ms;
+  --dur-menu:   200ms;
+  --dur-reveal: 620ms;
+
+  /* --- Depth. Derived from the navy, never a new hue. --- */
+  --shadow-rest: 0 12px 20px -8px rgba(29, 63, 115, 0.10);
+  --shadow-lift: 0 18px 34px -10px rgba(29, 63, 115, 0.18);
+  --shadow-nav:  0 8px 24px -12px rgba(29, 63, 115, 0.22);
+
+  /* --- Layout --- */
+  --container: 1100px;
+  --gutter: clamp(20px, 6vw, 72px);
+  /* One shared edge for every full-bleed block */
+  --edge: max(var(--gutter), (100% - var(--container)) / 2);
+
+  /* --- Shape. Four values, concentric: a 4px control sits inside
+         an 8px surface sits inside a 16px tray. --- */
+  --r-control: 4px;
+  --r-surface: 8px;
+  --r-tray:   16px;
+
+  /* --- Layers --- */
+  --z-nav:   10;
+  --z-menu:  20;
+  --z-grain: 60;
+  --z-rail:  90;
+  --z-skip:  80;
 }
 
 *{ box-sizing: border-box; margin:0; padding:0; }
+
+/* Sticky footer. /about is shorter than a tall viewport, which left
+   a strip of cream body background showing below the navy footer -
+   it read as the footer having come loose rather than as a short
+   page. dvh, not vh, so mobile browser chrome does not cause a jump. */
+html{ min-height: 100%; }
+body{ min-height: 100dvh; display: flex; flex-direction: column; }
+body > main{ flex: 1 0 auto; }
+body > footer{ flex-shrink: 0; }
 body{
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   background: var(--paper);
   color: var(--ink);
-  line-height: 1.55;
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 a{ color: inherit; text-decoration: none; }
 
 /* NAV */
-nav{
+body > nav{
   display:flex; align-items:center; justify-content:space-between;
   padding: 22px 6%;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
-  position: sticky; top:0; z-index: 10;
+  position: sticky; top:0; z-index: var(--z-nav);
 }
-.nav-logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:700; font-size: 1.15rem; }
+.nav-logo{ display:flex; align-items:center; gap:10px; font-family: var(--font-display); font-weight:700; font-size: 1.15rem; }
 .nav-logo svg{ height: 34px; width: auto; }
 .nav-links{ display:flex; align-items:center; gap: 34px; font-size: 0.92rem; font-weight:500; letter-spacing:0.02em; }
 .nav-links a{ position:relative; padding-bottom:4px; }
-.nav-links a:hover{ color: var(--gold); }
+@media (hover: hover) and (pointer: fine){
+  .nav-links a:hover{ color: var(--gold); }
+}
 .nav-menu{ position:relative; }
 .nav-menu summary{
   list-style:none; cursor:pointer; padding: 8px 16px;
-  border: 1px solid var(--line); border-radius:3px; font-weight:600;
+  border: 1px solid var(--line); font-weight:600;
 }
 .nav-menu summary::-webkit-details-marker{ display:none; }
 .nav-menu summary:after{ content:" \25BE"; }
-.nav-menu[open] summary{ background: var(--ink); color:#fff; border-color:var(--ink); }
+.nav-menu[open] summary{ background: var(--ink); color:var(--surface); border-color:var(--ink); }
 .nav-menu-panel{
-  position:absolute; right:0; top: calc(100% + 8px); background:#fff;
-  border:1px solid var(--line); border-radius:4px; min-width:180px;
-  box-shadow: 0 8px 24px rgba(17,97,168,0.15); overflow:hidden; z-index:20;
+  position:absolute; right:0; top: calc(100% + 8px); background:var(--surface);
+  border:1px solid var(--line); min-width:180px;
+  box-shadow: var(--shadow-nav); overflow:hidden; z-index: var(--z-menu);
 }
 .nav-menu-panel a{ display:block; padding: 13px 18px; font-weight:500; }
-.nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
+@media (hover: hover) and (pointer: fine){
+  .nav-menu-panel a:hover{ background: var(--paper); color: var(--ink); }
+}
 
 /* HERO */
 .hero{
   background: var(--paper-dark);
-  color: #F4EFE4;
+  color: var(--text-on-dark);
   padding: 100px 6% 130px;
   position: relative;
   overflow: hidden;
@@ -89,7 +326,7 @@ nav{
    went from 42.2px tall to 30.5px and shifted the entire page up.
    :where() keeps the original (0,0,1) weight. */
 :where(.page-home) h1{
-  font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2.3rem, 4.2vw, 3.4rem);
+  font-family: var(--font-display); font-weight:600; font-size: clamp(2.3rem, 4.2vw, 3.4rem);
   line-height:1.12; margin-bottom: 26px; letter-spacing:-0.01em;
 }
 .hero-buttons{ display:flex; gap:16px; flex-wrap:wrap; }
@@ -98,7 +335,7 @@ nav{
   border-radius:3px; font-weight:700; font-size:0.95rem;
 }
 .btn-secondary{
-  border: 1px solid #5A6B87; color:#F4EFE4; padding: 14px 30px;
+  border: 1px solid var(--border-on-dark); color:var(--text-on-dark); padding: 14px 30px;
   border-radius:3px; font-weight:600; font-size:0.95rem;
 }
 
@@ -109,13 +346,13 @@ nav{
   padding: 0 6%;
 }
 .stat-card{
-  background:#fff; border:1px solid var(--line); padding: 34px 30px;
+  background:var(--surface); border:1px solid var(--line); padding: 34px 30px;
   border-right:none;
 }
 .stat-card:last-child{ border-right:1px solid var(--line); }
-.stat-number{ font-family:'Fraunces', serif; font-size:2.6rem; font-weight:700; color:var(--steel); }
-.stat-label{ font-size:0.92rem; color:#565f6e; margin-top:8px; }
-.stat-source{ font-size:0.72rem; color:#9aa2ae; margin-top:10px; letter-spacing:0.02em; }
+.stat-number{ font-family: var(--font-display); font-size:2.6rem; font-weight:700; color:var(--steel); }
+.stat-label{ font-size:0.92rem; color:var(--text-muted); margin-top:8px; }
+.stat-source{ font-size:0.72rem; color:var(--text-faint); margin-top:10px; letter-spacing:0.02em; }
 
 section{ padding: 100px 6%; }
 .section-inner{ max-width: 1100px; margin: 0 auto; }
@@ -123,16 +360,17 @@ section{ padding: 100px 6%; }
 /* MISSION */
 .mission{ text-align:center; }
 .mission h2{
-  font-family:'Fraunces', serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight:600;
-  max-width: 780px; margin: 0 auto 20px; color: var(--ink);
+  font-family: var(--font-display); font-weight:600;
+  margin: 0 auto; color: var(--ink);
+  text-wrap: balance;
 }
 
 /* PROGRAM */
-.program{ background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.program{ background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
 .program-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items:center; }
 .program-tag{ font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:16px; display:block; }
-.program h3{ font-family:'Fraunces', serif; font-size:2rem; font-weight:600; margin-bottom:18px; }
-.program p{ color:#565f6e; margin-bottom: 22px; }
+.program h3{ font-family: var(--font-display); font-size:2rem; font-weight:600; margin-bottom:18px; }
+.program p{ color:var(--text-muted); margin-bottom: 22px; }
 .session-list{ list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
 .session-list li{ font-size:0.9rem; color: var(--steel); padding-left:20px; position:relative; }
 .session-list li:before{ content: attr(data-n); position:absolute; left:0; top:0; color:var(--gold); font-weight:700; font-size:0.78rem; }
@@ -142,51 +380,93 @@ section{ padding: 100px 6%; }
 }
 .program-visual svg{ width:70%; height:auto; }
 
+/* ---------- Footer ----------
+
+   Previously a single grey line of type. It was also the only
+   place on the site whose links differed per page - each footer
+   dropped the link to the page you were standing on, and none of
+   the four linked home, so the footer was a partial dead end. It
+   now carries the same four destinations everywhere, with
+   aria-current marking where you are instead of removing it. */
 footer{
-  background: var(--paper-dark); color:#8792A8; padding: 50px 6% 30px;
-  display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;
-  font-size:0.85rem;
+  background: var(--paper-dark);
+  color: var(--text-on-dark-faint);
+  padding: var(--space-xl) 6% var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  font-size: 0.85rem;
 }
-.footer-links{ display:flex; gap:26px; }
+.footer-mark{ display: grid; gap: var(--space-3xs); }
+.footer-name{
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  font-size: 1.05rem;
+  line-height: var(--leading-title);
+  color: var(--text-on-dark);
+}
+.footer-legal{ font-size: 0.8rem; }
+.footer-links{ display: flex; gap: var(--space-md); flex-wrap: wrap; }
+.footer-links a[aria-current="page"]{ color: var(--text-on-dark); }
+.footer-links a[aria-current="page"]::after{ transform: scaleX(1); }
 
 @media (max-width: 760px){
   .stats{ grid-template-columns: 1fr; margin-top:0; }
-  .stat-card{ border-right:1px solid var(--line) !important; border-bottom:none; }
   .program-grid{ grid-template-columns: 1fr; }
   .nav-links{ gap:16px; }
   .hero{ padding: 60px 6% 26px; }
   .hero-arc{ height:36px; }
   .program-visual{ height:200px; }
-  section{ padding: 44px 6%; }
   footer{ padding: 36px 6% 24px; }
 }
 
 /* ---------- SUBPAGE HEADER — programs, about, connect ---------- */
-.page-header{ background: var(--paper-dark); color:#F4EFE4; padding: 80px 6% 70px; }
-.page-header h1{ font-family:'Fraunces', serif; font-weight:600; font-size: clamp(2rem, 4vw, 2.8rem); max-width:640px; }
-.page-header p{ color:#CBD3E1; max-width:580px; margin-top:18px; font-size:1.05rem; }
+.page-header{ background: var(--paper-dark); color:var(--text-on-dark); padding: 80px 6% 70px; }
+.page-header h1{ font-family: var(--font-display); font-weight:600; font-size: clamp(2rem, 4vw, 2.8rem); max-width:640px; }
+.page-header p{ color:var(--text-on-dark-muted); max-width:580px; margin-top:18px; font-size:1.05rem; }
 
 /* ---------- PROGRAMS — session cards ---------- */
 .session-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-.session-card{ background:#fff; border:1px solid var(--line); border-radius:6px; padding: 32px 30px; }
+.session-card{ background:var(--surface); border:1px solid var(--line); padding: var(--pad-card); }
 .session-head{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
 .session-num{ width:34px; height:34px; border-radius:50%; background: var(--gold); color: var(--paper-dark); font-weight:700; font-size:0.95rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.session-card h3{ font-family:'Fraunces', serif; font-size:1.25rem; font-weight:600; }
+.session-card h3{ font-family: var(--font-display); font-size:1.25rem; font-weight:600; }
 .session-card ul{ list-style:none; }
-.session-card li{ position:relative; padding-left:18px; color:#565f6e; font-size:0.94rem; margin-bottom:9px; }
+.session-card li{ position:relative; padding-left:18px; color:var(--text-muted); font-size:0.94rem; margin-bottom:9px; }
 .session-card li:before{ content:"•"; position:absolute; left:0; color: var(--gold); font-weight:700; }
 .session-card li:last-child{ margin-bottom:0; }
 
 /* ---------- CONNECT — paths ---------- */
-.paths{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1080px; margin: 0 auto; }
-.path-card{ background:#fff; border:1px solid var(--line); border-radius:6px; padding: 34px 28px; }
-.path-card h3{ font-family:'Fraunces', serif; font-size:1.4rem; font-weight:600; margin-bottom:14px; }
-.path-card p{ color:#565f6e; margin-bottom:24px; font-size:0.98rem; }
+.paths{ display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); max-width: 1080px; margin: 0 auto; }
+.path-card{ background:var(--surface); border:1px solid var(--line); padding: var(--pad-card); }
+.path-card h3{ font-family: var(--font-display); font-weight:600; margin-bottom: var(--space-xs); }
+.path-card p{ color:var(--text-muted); margin-bottom:0; font-size:0.98rem; }
 
 /* ---------- ABOUT — bio ---------- */
-.bio p{ color:#3D4657; font-size:1.15rem; margin-bottom: 26px; }
-.signoff .name{ font-weight:700; font-size:1rem; }
-.signoff .role{ font-size:0.9rem; color:#7A8290; margin-top:2px; }
+.bio p{ color:var(--text-body); font-size:1.15rem; margin-bottom: 26px; }
+/* .name and .role became <p> elements (they were bare <div>s), which
+   means they now inherit `.bio p{ margin-bottom }` and were sitting
+   26px apart. They are one attribution block, not two paragraphs. */
+.signoff{
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--line);
+}
+.signoff .name{
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+.signoff .role{
+  font-size: 0.9rem;
+  color: var(--text-faint);
+  margin-top: 2px;
+  margin-bottom: 0;
+}
 
 /* ---------- The three values that genuinely disagreed ----------
    Of 89 distinct selectors across the four copies, 84 either
@@ -206,14 +486,22 @@ footer{
    to find. */
 :where(.page-home) .eyebrow{ margin-bottom: 22px; }
 :where(.page-connect) .page-header p{ max-width:560px; }
+/* The hard 150px width was set when all three buttons read "Get in
+   touch". Now that each names its own destination, a fixed width
+   wraps every label onto two lines. Buttons size to their label and
+   are told not to break; a wrapped CTA is a broken CTA. */
 :where(.page-connect) .btn-primary{
-  padding: 12px 26px; font-size:0.92rem;
-  display:inline-block; width:150px; text-align:center;
+  padding: 12px 26px;
+  font-size: 0.92rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
 }
 
 @media (max-width: 760px){
   .page-header{ padding: 56px 6% 28px; }
-  .session-grid{ grid-template-columns: 1fr; }
   .paths{ grid-template-columns: 1fr; }
 }
 
@@ -228,21 +516,7 @@ footer{
    small deltas, <=3 layers, no pinning, reduced-motion gated.
    ============================================================ */
 
-:root{
-  /* Strong curves — the CSS built-ins are too weak to read as intentional */
-  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-
-  --dur-press:  140ms;
-  --dur-hover:  200ms;
-  --dur-menu:   200ms;
-  --dur-reveal: 620ms;
-
-  /* Depth derived from the existing navy, never a new hue */
-  --shadow-rest:  0 12px 20px -8px rgba(29, 63, 115, 0.10);
-  --shadow-lift:  0 18px 34px -10px rgba(29, 63, 115, 0.18);
-  --shadow-nav:   0 8px 24px -12px rgba(29, 63, 115, 0.22);
-}
+/* Tokens live in one block at the top of this file. */
 
 /* ---------- Typographic settling (no type-scale changes) ---------- */
 h1, h2, h3{ text-wrap: balance; }
@@ -251,15 +525,66 @@ p{ text-wrap: pretty; }
 ::selection{ background: var(--gold); color: var(--paper-dark); }
 
 section[id]{ scroll-margin-top: 96px; }
-html{ scroll-behavior: smooth; }
+[tabindex="-1"]{ outline: none; }   /* focus targets: focusable, not ringed */
 
-/* ---------- Focus visibility (was entirely absent) ---------- */
-a:focus-visible,
-summary:focus-visible{
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-  border-radius: 2px;
+/* No `html{ scroll-behavior: smooth }`. Both engines drive anchor
+   travel themselves — Lenis with anchors:true, the legacy engine
+   with scrollIntoView. Declaring it here as well put native smooth
+   scrolling in a fight with Lenis's rAF loop over the same
+   scrollTop, which is what produced the stutter on desktop. */
+
+/* ---------- Focus visibility ----------
+
+   A single gold ring failed WCAG 2.2 SC 1.4.11 on most of the
+   site. Gold #E9BE3F against cream #FAF8F4 is about 1.9:1, well
+   under the 3:1 minimum for a non-text indicator - and it was
+   worst on .btn-primary, which is itself gold, so the ring was
+   effectively invisible on the page's main call to action.
+
+   The fix is a two-tone ring rather than a different colour: a
+   navy core carries the contrast on light surfaces (navy on cream
+   is 9.4:1), and a gold outer halo carries it on the navy hero
+   and footer (gold on navy is 7.1:1). One rule works everywhere,
+   so nothing depends on remembering which background a control
+   happens to sit on.
+
+   box-shadow rather than a second outline so the ring follows
+   each control's own border-radius. */
+:where(a, summary, button, [tabindex]):focus-visible{
+  outline: 2px solid var(--paper-dark);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--gold);
+  border-radius: var(--r-control);
 }
+
+/* Windows High Contrast strips both outline colour and shadow;
+   the system keyword restores a ring it controls. */
+@media (forced-colors: active){
+  :where(a, summary, button, [tabindex]):focus-visible{
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
+}
+
+/* ---------- Focus parity for hover-only affordances ----------
+
+   Eight components animated on :hover and did nothing at all on
+   :focus-visible, so a keyboard user got the generic ring and
+   none of the component's own feedback. Each pairing below gives
+   focus the same treatment hover already had.
+
+   .path-card is the important one: it is a <div>, so it cannot
+   take focus itself. Tabbing to the button inside it produced no
+   card-level response whatsoever. :focus-within fixes that. */
+.nav-logo:focus-visible svg{ transform: translateY(-2px) rotate(-2deg); }
+.nav-links > a:focus-visible::after{ transform: scaleX(1); }
+.footer-links a:focus-visible::after{ transform: scaleX(1); }
+.btn-arrow:focus-visible .btn-icon{
+  transform: translate(3px, -1px) scale(1.06);
+  background: color-mix(in srgb, var(--paper-dark) 22%, transparent);
+}
+.link-rule:focus-visible .link-arrow{ transform: translateX(4px); }
+.nav-menu-panel a:focus-visible{ background: var(--paper); color: var(--ink); }
 
 /* ============================================================
    SCROLL REVEAL
@@ -388,7 +713,6 @@ summary:focus-visible{
 }
 
 /* Hero and page-header need to clip their layers and stack above them */
-.hero{ position: relative; overflow: hidden; }
 .hero-inner{ position: relative; z-index: 2; }
 .hero-arc{ z-index: 1; }
 
@@ -398,8 +722,8 @@ summary:focus-visible{
 /* ============================================================
    NAV
    ============================================================ */
-nav{ transition: box-shadow var(--dur-hover) ease; }
-nav.is-scrolled{ box-shadow: var(--shadow-nav); }
+body > nav{ transition: box-shadow var(--dur-hover) ease; }
+body > nav.is-scrolled{ box-shadow: var(--shadow-nav); }
 
 .nav-logo svg{ transition: transform var(--dur-hover) var(--ease-out); }
 @media (hover: hover) and (pointer: fine){
@@ -496,6 +820,14 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
 }
 @media (hover: hover) and (pointer: fine){
   .path-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+}
+
+/* Outside the pointer query on purpose: keyboard focus is not a
+   pointer capability, so this must apply on touch devices with an
+   attached keyboard too. */
+.path-card:focus-within{
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
 }
 
 .session-num{ box-shadow: 0 4px 10px -3px rgba(29, 63, 115, 0.35); }
@@ -604,11 +936,7 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
    and motion.js scales their amplitude to the viewport instead of
    shipping desktop pixel values to a small screen. */
 
-/* ============================================================
-   REDUCED MOTION
-   Fewer and gentler, not zero: keep the opacity fades that
-   explain what appeared, drop everything that travels.
-   ============================================================ */
+/* Reduced motion is implemented in TIER 7, at the end of this file. */
 
 
 /* ============================================================
@@ -620,13 +948,7 @@ nav.is-scrolled{ box-shadow: var(--shadow-nav); }
    (component consistency, alignment, tabular figures).
    ============================================================ */
 
-:root{
-  /* Systemic z-scale — replaces ad-hoc values */
-  --z-nav:    10;
-  --z-menu:   20;
-  --z-grain:  60;
-  --z-skip:   80;
-}
+/* Tokens live in one block at the top of this file. */
 
 /* ---------- Film grain: breaks digital flatness ----------
    Fixed and pointer-events-none so it never repaints on scroll. */
@@ -661,7 +983,7 @@ body::after{
    backdrop-filter is confined to the sticky element, never to
    scrolling content, per the performance guardrail. */
 @supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))){
-  nav{
+  body > nav{
     background: color-mix(in srgb, var(--paper) 78%, transparent);
     -webkit-backdrop-filter: blur(14px) saturate(150%);
     backdrop-filter: blur(14px) saturate(150%);
@@ -688,6 +1010,11 @@ body::after{
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 }
+.path-card:focus-within{
+  box-shadow:
+    var(--shadow-lift),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
 
 /* ---------- Alignment: CTAs form one clean line ----------
    Path cards carry different copy lengths, so their buttons were
@@ -708,12 +1035,10 @@ body::after{
    reads as machined hardware rather than a pasted-in rectangle. */
 .visual-shell{
   padding: 10px;
-  border-radius: 18px;
   background: rgba(29, 63, 115, 0.055);
   box-shadow: inset 0 0 0 1px rgba(29, 63, 115, 0.10);
 }
 .visual-shell .program-visual{
-  border-radius: 10px;
   box-shadow:
     inset 0 1px 0 rgba(244, 239, 228, 0.16),
     0 10px 24px -12px rgba(29, 63, 115, 0.55);
@@ -787,7 +1112,7 @@ body::after{
   margin: 14px auto 0;
   padding: 0 6%;
   font-size: 0.78rem;
-  color: #9aa2ae;
+  color: var(--text-faint);
 }
 
 
@@ -820,7 +1145,7 @@ section{ padding: clamp(56px, 7.5vw, 104px) 6%; }
    the button's. Both now use the same 44px inline-flex box, so
    their text sits on one optical line.
    ============================================================ */
-nav{ gap: 16px; }
+body > nav{ gap: 16px; }
 .nav-logo{ min-width: 0; }
 .nav-logo svg{ flex-shrink: 0; }
 .nav-links{ flex-shrink: 0; gap: 30px; }
@@ -879,7 +1204,7 @@ nav{ gap: 16px; }
 .stat-card{
   border: 0 !important;
   box-shadow: none;
-  background: #fff;
+  background: var(--surface);
 }
 .stat-lead{
   grid-row: span 2;
@@ -899,7 +1224,170 @@ nav{ gap: 16px; }
   font-size: clamp(1rem, 1.25vw, 1.15rem);
   max-width: 34ch;
 }
-.stat-lead .stat-source{ margin-top: auto; padding-top: 28px; }
+.stat-lead .stat-source{ margin-top: auto; padding-top: var(--space-md); }
+
+
+/* ---------- About: the statement, and a way onward ----------
+
+   The bio is one paragraph. That is the entire page, so it is set
+   as a lead rather than as body copy - at body size it read as a
+   caption for a heading rather than as the thing the page is for.
+   The words are unchanged.
+
+   The page also linked to nothing. In a three-page site that made
+   About a dead end: you arrived, read four sentences, and had to
+   go back to the nav. These two cards are the routes that were
+   already implied and never offered. */
+.bio-lead{
+  font-size: clamp(1.15rem, 1.05rem + 0.42vw, 1.4rem);
+  line-height: var(--leading-tight);
+  color: var(--text-body);
+  text-wrap: pretty;
+}
+
+/* Eyebrows and kickers sitting on a light surface take the darker
+   gold. The hero and page-header keep the bright one - it is on
+   navy there, where it passes at 5.9:1 and is the brand's voice. */
+.mission .eyebrow,
+.program-tag{
+  color: var(--gold-ink);
+}
+
+/* ---------- Screen-reader-only utility ---------- */
+.sr-only{
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Contact routes ----------
+
+   Three cards previously carried three buttons reading "Get in
+   touch", "Get in touch" and "Email Us" - two links with
+   identical text pointing at different inboxes, which is
+   ambiguous out of context and exactly what a screen reader
+   reads out when listing links.
+
+   Each button now names its own destination, and the address is
+   printed underneath. That last part is not decoration: a mailto:
+   link is silent on a device with no mail client, so without a
+   visible address those visitors get a button that does nothing
+   and no way to reach anyone.
+   ---------------------------------------------------------- */
+.path-action{
+  margin-top: auto;
+  padding-top: var(--space-md);
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: start;
+}
+.path-address{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  color: var(--text-faint);
+}
+.path-address .address{
+  color: var(--steel);
+  font-weight: var(--weight-medium);
+  border-bottom: 1px solid color-mix(in srgb, var(--steel) 34%, transparent);
+  word-break: break-word;
+}
+
+/* The site's first real <button>. Every state is declared, because
+   a copy control that gives no feedback is worse than no copy
+   control - the user cannot tell whether it worked. */
+.copy-btn{
+  --copy-fg: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+  color: var(--copy-fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  padding: 5px 10px;
+  cursor: pointer;
+  /* Pinned so the card cannot reflow when the label changes from
+     "Copy" to "Copied" mid-interaction. */
+  min-width: 7ch;
+  text-align: center;
+  transition:
+    color var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out),
+    background var(--dur-hover) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine){
+  .copy-btn:hover{
+    --copy-fg: var(--ink);
+    border-color: color-mix(in srgb, var(--ink) 45%, transparent);
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+}
+.copy-btn:active{ transform: scale(0.96); }
+.copy-btn[data-state="done"]{
+  --copy-fg: var(--paper-dark);
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.copy-btn[data-state="error"]{
+  --copy-fg: #8A3324;
+  border-color: color-mix(in srgb, #8A3324 45%, transparent);
+  background: color-mix(in srgb, #8A3324 7%, transparent);
+}
+
+/* Only the longest of the three addresses wrapped its Copy button
+   onto a second line, so one card differed from its two siblings
+   for no reason a reader could see. Below 560px all three stack,
+   which is predictable rather than dependent on how many
+   characters happen to be in an inbox name. */
+@media (max-width: 560px){
+  .path-address{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+  }
+}
+
+.paths-note{
+  margin-top: var(--space-lg);
+  font-size: 0.84rem;
+  color: var(--text-faint);
+  max-width: 62ch;
+}
+
+/* ---------- Section heads ----------
+
+   Both /programs and /connect ran h1 straight to h3 - eight times
+   over on programs - and the wrapping <section> had no accessible
+   name, which makes it worth less than a <div> in a landmark tree.
+   Each now has a real h2 that names what follows. */
+.section-head{
+  max-width: 62ch;
+  margin-bottom: var(--space-xl);
+}
+.section-head h2{
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  font-size: clamp(1.5rem, 1.1656rem + 1.371vw, 2.4rem);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--track-heading);
+  font-optical-sizing: auto;
+}
+.section-head p{
+  margin-top: var(--space-sm);
+  color: var(--text-muted);
+  max-width: 56ch;
+}
+
 
 /* ============================================================
    CONNECT PATHS — two primary routes, one secondary.
@@ -926,7 +1414,7 @@ nav{ gap: 16px; }
 @media (hover: hover) and (pointer: fine){
   .path-card--wide:hover{
     transform: none;
-    background: #fff;
+    background: var(--surface);
     box-shadow: var(--shadow-rest);
   }
 }
@@ -959,7 +1447,7 @@ nav{ gap: 16px; }
    PHONE
    ============================================================ */
 @media (max-width: 760px){
-  nav{ padding: 12px 5%; }
+  body > nav{ padding: 12px 5%; }
   .nav-logo{ font-size: 1rem; gap: 8px; }
   .nav-logo svg{ height: 28px; }
   .nav-menu-panel{ min-width: 216px; }
@@ -991,8 +1479,14 @@ nav{ gap: 16px; }
   .hero-buttons .btn-secondary{ width: 100%; text-align: center; }
   .btn-arrow{ justify-content: center; }
 
-  .stat-lead .stat-number{ font-size: 2.6rem; }
-  footer{ flex-direction: column; gap: 16px; }
+  /* Column layout inherits align-items: flex-end from the row rule,
+     which pushes the wordmark to the right while the link row stays
+     left. Both go left. */
+  footer{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
 }
 
 /* The hero's bottom fade is 36px tall on phones, but the original
@@ -1015,6 +1509,29 @@ nav{ gap: 16px; }
 }
 .nav-links > a::before{ inset: 0 -8px; }
 
+/* Same treatment for the controls added or missed since:
+   - .link-rule is 20px tall (its own text height) and is the only
+     route from the homepage into the full curriculum
+   - .address and .copy-btn are the contact page's fallback path,
+     which is the one people reach for when mailto: does nothing */
+.link-rule,
+.path-address .address{ position: relative; }
+.link-rule::before,
+.path-address .address::before{
+  content: "";
+  position: absolute;
+  inset: -12px -6px;
+}
+.copy-btn{ position: relative; }
+.copy-btn::before{
+  content: "";
+  position: absolute;
+  inset: -7px -4px;
+}
+
+/* The wordmark is a link and was under target on phones. */
+.nav-logo{ min-height: 44px; }
+
 /* ============================================================
    TIER 4 — cohesion
    Two problems this fixes:
@@ -1036,19 +1553,10 @@ nav{ gap: 16px; }
       session list sizes), and radii had spread to 3/4/6/10/18px.
    ============================================================ */
 
-:root{
-  --container: 1100px;
-  --gutter: clamp(20px, 6vw, 72px);
-  /* One shared edge for every full-bleed block */
-  --edge: max(var(--gutter), (100% - var(--container)) / 2);
-
-  --r-control: 4px;   /* buttons, menu button */
-  --r-surface: 8px;   /* cards, dropdown, inner plate */
-  --r-tray:   16px;   /* outer bezel (concentric with 8px padding) */
-}
+/* Tokens live in one block at the top of this file. */
 
 /* ---------- One container edge ---------- */
-nav,
+body > nav,
 .hero,
 .page-header,
 footer,
@@ -1073,6 +1581,15 @@ section,
 /* The mission block is deliberately centred; keep it that way */
 .mission .section-inner{ text-align: center; }
 .mission h2{ margin-left: auto; margin-right: auto; }
+
+/* Optical, not equal. The gold hairline and eyebrow sit above the
+   statement, so the visual mass is top-heavy; matching the top and
+   bottom padding by the numbers makes it look like it has slipped
+   upward. The bottom carries a little more. */
+.mission{
+  padding-top: clamp(56px, 6vw, 88px);
+  padding-bottom: clamp(64px, 7vw, 104px);
+}
 
 /* The bio is a reading column, so it keeps a measure — but it is
    left-aligned to the same edge as its own h1 instead of floating
@@ -1106,7 +1623,6 @@ section,
 
 /* One session-list item size (was 0.9rem here, 0.94rem there) */
 .session-list li,
-.session-card li{ font-size: 0.94rem; }
 
 /* ---------- Radius scale ---------- */
 .btn-primary,
@@ -1173,10 +1689,10 @@ section,
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--gold), #F6D876);
+  background: linear-gradient(90deg, var(--gold), color-mix(in srgb, var(--gold) 62%, var(--surface)));
   transform: scaleX(0);
   transform-origin: 0 50%;
-  z-index: 90;
+  z-index: var(--z-rail);
   pointer-events: none;
 }
 
@@ -1247,7 +1763,14 @@ section,
    translateY across these on hover, which is what reads as a wave
    travelling out from the letter the cursor arrived over. Only
    transform is touched, so each character stays on the compositor. */
-.cta-char{ display: inline-block; will-change: transform; }
+/* No standing will-change. This promoted one compositor layer per
+   CHARACTER for the life of the page - roughly 27 layers on the
+   homepage - to serve a hover effect most visitors never trigger.
+   The hint is applied by JS on pointerenter and released on leave,
+   which is what will-change is actually for. */
+.cta-char{ display: inline-block; }
+.cta:hover .cta-char,
+.cta:focus-within .cta-char{ will-change: transform; }
 
 /* Once the engine claims a button, JS owns the icon outright: a CSS
    transition here would re-interpolate every value WAAPI commits,
@@ -1395,29 +1918,89 @@ section,
    their endpoints exactly where they already were (29.6/54.4 and
    27.2/44.8) and only changes how they travel between them. */
 
-.stat-lead .stat-number{ font-size: clamp(38px, 25.97px + 3.086vw, 70.4px); }
-.hero h1{ font-size: clamp(29.6px, 20.39px + 2.362vw, 54.4px); }
-.page-header h1{ font-size: clamp(27.2px, 20.66px + 1.676vw, 44.8px); }
+/* Stated in rem, not px.
+
+   These ramps shipped in px, which silently opted every display
+   role out of the reader's browser font-size setting: someone who
+   sets 20px because they need to gets body copy that scales and
+   headlines that do not, which inverts the hierarchy for exactly
+   the reader who most needs it intact. Each rem figure is the old
+   px figure over 16, so nothing moves at the default root size.
+   The vw term stays vw - it is viewport-relative by design and is
+   what makes these fluid. */
+
+.stat-lead .stat-number{ font-size: clamp(2.375rem, 1.6231rem + 3.086vw, 4.4rem); }
+.hero h1{ font-size: clamp(1.85rem, 1.2744rem + 2.362vw, 3.4rem); }
+.page-header h1{ font-size: clamp(1.7rem, 1.2913rem + 1.676vw, 2.8rem); }
 
 /* Supporting figures — must sit below the headline, not above it */
-.stat-number{ font-size: clamp(26px, 20.21px + 1.486vw, 41.6px); }
+.stat-number{ font-size: clamp(1.625rem, 1.2631rem + 1.486vw, 2.6rem); }
 
-.mission h2{ font-size: clamp(24px, 18.65px + 1.371vw, 38.4px); }
-.program h3{ font-size: clamp(22px, 18.29px + 0.952vw, 32px); }
+/* Up from a 38.4px ceiling. It still sits below .hero h1 (54.4px)
+   and well below the lead figure (70.4px), so the ramp's
+   guarantee that the hierarchy cannot invert is intact - but it
+   now has enough presence to justify the room it is standing in.
+   Below ~46ch the line breaks read as deliberate rather than
+   accidental. */
+.mission h2{
+  font-size: clamp(1.6rem, 1.2119rem + 1.5924vw, 3rem);
+  max-width: 20ch;
+}
+.program h3{ font-size: clamp(1.375rem, 1.1431rem + 0.952vw, 2rem); }
 
 .session-card h3,
-.path-card h3{ font-size: clamp(18px, 16.96px + 0.267vw, 20.8px); }
+.path-card h3{ font-size: clamp(1.125rem, 1.06rem + 0.267vw, 1.3rem); }
 
 .eyebrow,
-.program-tag{ font-size: clamp(11.7px, 11.29px + 0.105vw, 12.8px); }
+.program-tag{ font-size: clamp(0.7313rem, 0.7056rem + 0.105vw, 0.8rem); }
+
+/* ---------- Leading, matched to the size ramp above ----------
+
+   This is the part that was missing. Four line-height
+   declarations covered roughly forty text roles, so everything
+   that did not explicitly opt out inherited body's 1.55. At
+   44.8px that is 69px of leading — .page-header h1 was running
+   LOOSER than .hero h1 at 54.4px, which reads as a mistake
+   because it is one. Leading now tightens as size grows. */
+
+.hero h1,
+.page-header h1,
+.stat-lead .stat-number{
+  line-height: var(--leading-display);
+}
+
+.mission h2,
+.program h3,
+.stat-number{
+  line-height: var(--leading-heading);
+}
+
+.session-card h3,
+.path-card h3,
+.signoff .name{
+  line-height: var(--leading-title);
+}
+
+/* Optical sizing: Fraunces ships a real opsz axis and this file
+   loads it. Without opting in, one master renders at every size
+   and the small card titles carry display-weight contrast they
+   are too small to survive. */
+.hero h1,
+.page-header h1,
+.mission h2,
+.program h3,
+.stat-number,
+.session-card h3,
+.path-card h3,
+.nav-logo{
+  font-optical-sizing: auto;
+}
 
 /* The 480px override predates the ramp above and fought it: at
    2.6rem the lead figure collapsed onto the same 41.6px as its
    two supporting figures, flattening the one size relationship
-   the stats block is built on. The ramp handles this width. */
-@media (max-width: 480px){
-  .stat-lead .stat-number{ font-size: clamp(38px, 25.97px + 3.086vw, 70.4px); }
-}
+   the stats block is built on. The ramp handles this width, so
+   the override is simply gone rather than restated. */
 
 /* ---------- Layout fidelity ----------
 
@@ -1435,7 +2018,7 @@ section,
    padding returns to the peer value; the lighter surface stays,
    since that still says "secondary" in a single column. */
 @media (max-width: 760px){
-  .path-card--wide{ padding: 34px 28px; }
+  .path-card--wide{ padding: var(--pad-card); }
 }
 
 /* ---------- Mobile text inflation guard ----------
@@ -1460,44 +2043,96 @@ html{
 }
 
 /* ============================================================
-   TIER 7 — superseded by TIER 8 below.
-   This tier briefly honoured reduced motion on pointer devices
-   only. It is now honoured nowhere; see TIER 8 for the decision,
-   the cost, and how to reverse it.
+   TIER 7 — REDUCED MOTION
+
+   The rule: reduced motion removes animation, never content.
+
+   Two layers have to agree or this gets worse, not better. CSS
+   that suppresses motion while the engine is still driving it
+   leaves elements frozen part-way through a tween. So:
+
+   motion.js sets honoursReduce = reduceQuery.matches. When it is
+   true the engine never claims the page — it drops `.gsap` and
+   returns before registering a single trigger, and site.js's
+   legacy engine calls stopEngine(). Nothing is animating by the
+   time the rules below apply.
+
+   The block is ordered content-first deliberately. Every selector
+   that hides something for animation purposes is listed and
+   resolved before a single duration is touched, so there is no
+   window in which an element is both un-animated and invisible.
    ============================================================ */
+@media (prefers-reduced-motion: reduce){
+
+  /* --- 1. Everything hidden for animation becomes visible. --- */
+  .js [data-reveal],
+  .js [data-reveal].reveal-card,
+  .js .word-reveal .word,
+  .js [data-words],
+  .gsap [data-words],
+  .js .hero-inner,
+  .js:not(.gsap) .program-visual [class^="arc-"]{
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* The bridge is drawn, not withheld. */
+  .js:not(.gsap) .program-visual .arc-span{
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  /* --- 2. Only now, remove the motion. --- */
+  *,
+  *::before,
+  *::after{
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* --- 3. Drop the ambient layer entirely. ---
+     These are decorative, they never carry meaning, and they are
+     the elements most likely to provoke symptoms: two radial
+     glows that breathe on a 9s and 12s loop, and a horizontally
+     parallaxed arcline. Removing them costs nothing a visitor
+     who asked for less motion wanted. */
+  .hero-glow,
+  .hero-arcline{ display: none; }
+
+  /* The scroll-progress rail reports position by moving. With no
+     scroll animation to track it is noise. */
+  .scroll-progress{ display: none; }
+
+  /* --- 4. Neutralise the parallax contract. ---
+     --drift is written by JS as a scroll-linked offset. The
+     engines are stopped, but pin it so a stale value cannot
+     displace anything. */
+  .js [data-reveal]{ --drift: 0px !important; }
+
+  /* will-change without animation is a compositor layer for
+     nothing. */
+  [data-parallax-y],
+  [data-parallax-x],
+  .js .word-reveal .word,
+  .cta-char{ will-change: auto !important; }
+}
 
 /* ============================================================
-   TIER 8 — ONE EXPERIENCE ON EVERY DEVICE
+   TIER 8 — SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH
 
-   Two deliberate decisions, both requested, both with costs worth
-   stating rather than burying.
-
-   1. REDUCED MOTION IS NO LONGER HONOURED, ANYWHERE.
-   The five @media (prefers-reduced-motion: reduce) blocks that
-   used to live in this file are gone, and motion.js pins
-   honoursReduce to false. Every visitor gets the full animated
-   site regardless of their system setting.
-
-   This is the accessibility cost, in plain terms: Reduce Motion is
-   switched on for vestibular disorders, migraine, and seizure
-   triggers, where motion causes physical symptoms - nausea,
-   vertigo, headache - rather than mild annoyance. Those visitors
-   have asked the browser for less motion and this site now
-   declines. Nothing here degrades gracefully for them any more.
-
-   To restore it, `git show` the commit that removed the blocks and
-   paste them back, then flip honoursReduce in motion.js. The two
-   layers must always agree: CSS that suppresses motion while the
-   engine still drives it produces elements frozen mid-animation.
-
-   2. SCROLL-DRIVEN MOTION RUNS AT EVERY WIDTH.
-   The arcline draw and the column counter-drift were switched off
-   below 760px. Neither needs a pointer - both are scrubbed to
-   scroll - so the gate was about frame cost, not capability.
-   Deriving the particle count freed that budget back.
+   The arcline draw and the column counter-drift were once
+   switched off below 760px. Neither needs a pointer — both are
+   scrubbed to scroll — so the gate was about frame cost, not
+   capability. Deriving the particle count freed that budget back.
 
    What remains desktop-only is the genuinely pointer-dependent
-   layer: the CTA choreography and the 3D card tilt read a cursor
+   layer: the CTA choreography and the card tilt read a cursor
    position. There is no cursor on a touchscreen, so these are not
    switched off on phones so much as undefined there.
    ============================================================ */

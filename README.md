@@ -1,124 +1,114 @@
-# TODO
+# The Bridge Up Project
 
-Set up as next.js project and deploy to vercel. Set to private (preview).
+Marketing site for [bridgeupproject.org](https://bridgeupproject.org) — a youth-led
+nonprofit teaching foster youth independence skills through AI literacy.
 
-# The Bridge Up Project — Website Mockup
+Four hand-written HTML pages, one stylesheet, self-hosted fonts and animation
+libraries. No build step, no framework, no bundler. Deployed to Vercel as static
+files.
 
-Status: design and content mockup, not a live production build. Handed off for reference in building the real site.
+## Running it
 
-## What this is
+```
+npm install
+npm run serve
+```
 
-Four static HTML pages plus a logo, showing the intended structure, copy, and visual design for bridgeupproject.org. These are self-contained mockups (no build tools, no framework, inline CSS in each file) meant to communicate design intent, not to be deployed as-is.
+Then open <http://localhost:3000>.
 
-## Files
+**Use the server, not Finder.** Pages link to each other by extensionless,
+root-relative path (`href="/programs"`), matching production: `cleanUrls` and
+`trailingSlash: false` in `vercel.json` map `/programs` to `programs.html`.
+`server.js` mirrors that locally. Opening the HTML files directly will break
+every internal link.
 
-![](example.com/img.jpg)
+## Layout
 
-- `index.html` (served at `/`) — landing page: hero, national stats, mission statement, program teaser
-- `programs.html` (served at `/programs`) — full 8-session AI Pathways curriculum
-- `about.html` (served at `/about`) — founder bio
-- `connect.html` (served at `/connect`) — Partner With Us / Volunteer as a Mentor / Contact Us
-- `bridge_up_project_logo.svg` — standalone logo file (icon + wordmark). This is the source of truth for the brand mark. The website's nav icon is coded directly into each page and doesn't depend on this file, but this file is what you need for anything outside the site: Instagram/LinkedIn profile photos, a favicon, letterhead, or any printed material.
-
-Run `npm run serve` and open http://localhost:3000 to start. The pages link to each other by extensionless, root-relative path (e.g. `href="/programs"`), matching production: `cleanUrls` and `trailingSlash: false` in `vercel.json` map `/programs` to `programs.html` and redirect `/programs/` and `/programs.html` to it. `server.js` mirrors that locally, so **opening the HTML files directly from Finder will break the links** — use the server.
-
-## Brand palette
-
-| Name | Hex | Used for |
+| Path | File | What it is |
 |---|---|---|
-| Cobalt | `#1161A8` | Headings, buttons, primary text (`--ink`) |
-| Deep navy | `#1D3F73` | Hero and footer backgrounds (`--paper-dark`) |
-| Accent blue | `#2B5291` | Secondary text, mid-tone accents (`--steel`) |
-| Gold | `#E9BE3F` | Accent color, CTA buttons, eyebrow labels (`--gold`) |
-| Background | `#FAF8F4` | Page background (`--paper`) |
+| `/` | `index.html` | Hero, national statistics, mission, program teaser |
+| `/programs` | `programs.html` | The full eight-session AI Pathways curriculum |
+| `/about` | `about.html` | Founder statement, routes onward |
+| `/connect` | `connect.html` | Partner / mentor / general contact |
 
-All four HTML files define these as CSS custom properties in `:root`, change them once per file to re-theme.
+| File | Role |
+|---|---|
+| `site.css` | The entire stylesheet. Tokens are in one `:root` at the top |
+| `motion.js` | GSAP motion engine. Owns the page when it initialises |
+| `site.js` | Legacy fallback engine, plus nav and copy-to-clipboard |
+| `vendor/` | Self-hosted animation libraries. No CDN at runtime |
+| `fonts/` | Self-hosted Fraunces and Inter, SIL OFL 1.1 |
+| `bridge_up_project_logo.svg` | Standalone brand mark for anything off-site |
 
-## Type
+## Brand
 
-- Headings: **Fraunces** (serif, via Google Fonts)
-- Body/UI: **Inter** (sans-serif, via Google Fonts)
+| Token | Hex | Used for |
+|---|---|---|
+| `--ink` | `#1161A8` | Cobalt. Headings, primary text |
+| `--paper-dark` | `#1D3F73` | Deep navy. Hero and footer |
+| `--steel` | `#2B5291` | Accent blue. Figures, mid-tones |
+| `--gold` | `#E9BE3F` | Accent. CTAs, eyebrows, keystone |
+| `--paper` | `#FAF8F4` | Page background |
+| `--line` | `#DCD5C8` | Hairline |
 
-Both are loaded via `@import` in each file's `<style>` block.
+Headings are **Fraunces**, body and UI are **Inter**, both self-hosted variable
+woff2 (latin and latin-ext). Every other token — type scale, leading, spacing,
+radii, shadows, z-index — lives in the same `:root` block at the top of
+`site.css`. Change them once to re-theme.
 
-## Navigation pattern
+The bridge mark appears twice: inlined in the nav on every page, and as the
+large illustration on the homepage. Both use the same colour logic — mismatched
+pillars, gold keystone — with the illustration inverted for its navy plate. If
+you change one, change both.
 
-Each page has a nav bar with:
-- Logo (links to `/`)
-- A direct "Programs" link
-- A dropdown menu (native `<details>`/`<summary>`, no JS) containing "About Us" and "Connect With Us"
+## How the motion works
 
-This is a deliberate structure: Programs is on-page/primary content, About and Connect are treated as secondary pages reached through the menu.
+Three layers, in order of preference, each a fallback for the one above:
 
-## Responsive behavior
+1. **`motion.js`** — GSAP, ScrollTrigger, SplitText, DrawSVG, ScrambleText, plus
+   Lenis, anime.js and Motion for the CTA choreography. Claims the page by setting
+   `window.__BU_MOTION_OK__`, but only *after* its init chain resolves.
+2. **`site.js`** — a dependency-free engine using IntersectionObserver and one rAF
+   loop. Runs when a vendor script fails to load.
+3. **Plain HTML** — an inline `<head>` script strips the `js` and `gsap` classes
+   after 4s if neither engine reported in.
 
-All four pages include a viewport meta tag and a mobile breakpoint at 760px. Below that width: multi-column grids (stats, session cards, Connect path cards) collapse to a single column, the nav bar's link spacing tightens, and section padding is reduced so pages don't feel overly tall on a phone screen. This has been tested on an actual phone browser, not just assumed from the CSS.
+The hidden-until-revealed states are gated behind `.js` on `<html>`, so with
+scripting off the page is fully readable. **This contract matters**: if you add a
+CSS rule that hides something for animation purposes, gate it behind `.js` and
+make sure something un-hides it, or add it to the reduced-motion block.
 
-## Animation libraries (`vendor/`)
+### Reduced motion
 
-Everything in `vendor/` is self-hosted — no CDN at runtime. GSAP and its
-plugins ship as-is from the `gsap` package. The other two are tree-shaken
-IIFE bundles built from npm, so regenerate them with esbuild if the
-dependency is ever bumped:
+`prefers-reduced-motion: reduce` is honoured. When it is set, `motion.js` drops
+`.gsap` and returns before registering a trigger, and TIER 7 of `site.css`
+resolves every hidden state to visible.
 
-```
-npx esbuild --bundle --format=iife --minify \
-  --global-name=Motion --outfile=vendor/motion-mini.min.js <(echo 'export { animate } from "motion/mini"')
-npx esbuild --bundle --format=iife --minify \
-  --global-name=anime --outfile=vendor/anime.min.js <(echo 'export { animate, createTimeline, stagger, utils } from "animejs"')
-```
+**The two layers must always agree.** CSS that suppresses motion while the engine
+is still driving it leaves elements frozen part-way through a tween — worse than
+either choice alone. The rule is: reduced motion removes *animation*, never
+*content*. The hero constellation still draws; it just stops drifting.
 
-(esbuild needs the entry file inside the project so `node_modules` resolves;
-write it to a temp file in the repo root rather than using `/tmp`.)
-
-`motion/mini` is the Web Animations API-only entry point — 3.3 KB gzipped
-against ~40 KB for the full `motion` package — and it is the right build
-here because the CTA choreography only ever needs fire-and-forget WAAPI
-tweens, which the compositor can run off the main thread. Only `index.html`
-and `connect.html` load these two; the other pages have no CTA buttons.
-
-GSAP is required. Motion and anime.js are feature-detected in `motion.js`,
-so a failed download degrades the CTA choreography rather than the page.
-
-## Encoding check
-
-Source files are checked for invisible character corruption:
-
-```
-npm run check:encoding
-```
-
-This exists because the programs page shipped a broken bullet. `site.css` held
-`U+0082` — an invisible C1 control character — where a `•` belonged. A CSS
-hex escape (`\2022`) had been re-read by a tool as a C-style *octal* escape,
-where `\202` means `0x82`, leaving the trailing `2` as a literal. Browsers draw
-a `.notdef` box for a control codepoint, so every lesson topic rendered a small
-rectangle and a stray `2` instead of a bullet.
-
-It survived review because it is invisible: the file *looks* like
-`content:"2"` in any editor, and the diff looks intentional. The check works at
-the byte level, which is the only thing that catches it. It flags C0/C1 control
-characters, `U+FFFD`, a UTF-8 BOM, invalid UTF-8, and double-encoding mojibake
-(the `U+00E2 U+20AC` signature of UTF-8 re-read as Latin-1). Binaries and `vendor/` are skipped.
-
-A `pre-commit` hook in `.githooks/` runs it against staged files. `npm install`
-wires it up via the `prepare` script; to enable it by hand:
+## Checks
 
 ```
-git config core.hooksPath .githooks
+npm run check
 ```
 
-If it ever fires, type the intended character directly rather than reaching for
-a backslash escape — that is what broke last time.
+Runs both guards, and the pre-commit hook runs them too (`--no-verify` to bypass):
 
-## Known open items (not fixed by this mockup)
+- **`check:encoding`** — byte-level scan for invisible character corruption. This
+  exists because `site.css` once shipped a U+0082 control character where a bullet
+  belonged, and it was invisible in both an editor and a diff.
+- **`check:chrome`** — the nav and footer must be identical across all four pages.
+  This exists because they weren't: every footer had quietly dropped the link to
+  its own page, and none of them linked home. `aria-current="page"` is the one
+  attribute allowed to differ.
 
-- Email addresses on the Connect page (`info@`, `volunteer@`, `tyson@bridgeupproject.org`) are not yet live inboxes — need to be set up before launch.
-- No blog/CMS — intentionally left out for now, will need confidentiality guidance from JCCA before any real session content is posted.
-- No donate button anywhere on the site — intentional, org is not yet a registered 501(c)(3).
-- Stats on the homepage are national data (Annie E. Casey Foundation), explicitly disclaimed as not specific to any partner program.
-- The bridge icon inside the dark box on the homepage (in the Programs section) is intentionally colored differently from the main logo, gold-dominant with a cream accent dot, built specifically to read clearly against that dark background. It is not a bug and not out of sync with the brand. `bridge_up_project_logo.svg` remains the source of truth for the logo everywhere else.
+## Known open items
 
-## Contact
-
-Tyson Youm, Founder — tyson@bridgeupproject.org (pending setup)
+- The three contact addresses (`info@`, `volunteer@`, `tyson@bridgeupproject.org`)
+  need live inboxes. Every call to action on the site routes to one of them.
+- There is no form anywhere and no backend. Contact is `mailto:` by design, with
+  the address printed and a copy button beside it for visitors whose device has no
+  mail client.
