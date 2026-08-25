@@ -112,7 +112,17 @@
     var host = null, canvas = null, ctx = null;
     var nodes = [], w = 0, h = 0, dpr = 1, reach = 160;
     var running = false, rafId = 0, visible = true;
-    var pointer = { x: -1e4, y: -1e4, live: false };
+    /* cx/cy are CLIENT coordinates. Handlers only store them - the
+       conversion to canvas space needs a layout read, and doing that
+       inside a touchmove that fires throughout a scroll gesture is a
+       forced reflow per frame. step() does it once, batched with the
+       draw it already performs.
+
+       strength eases toward target instead of switching, so the web
+       gathers and releases rather than snapping on and off. That
+       matters most on touch, where the finger leaves abruptly. */
+    var pointer = { x: -1e4, y: -1e4, cx: -1e4, cy: -1e4,
+                    target: 0, strength: 0 };
     var grabReach = 170;
 
     function tune() {
@@ -190,13 +200,13 @@
          attached to you rather than merely nearby - the previous
          version only brightened links that already existed between
          nodes, which is close to invisible. */
-      if (pointer.live) {
+      if (pointer.strength > 0.01) {
         for (var p = 0; p < nodes.length; p++) {
           var pn = nodes[p];
           var px = pn.x - pointer.x, py = pn.y - pointer.y;
           var pd2 = px * px + py * py;
           if (pd2 > grab2) continue;
-          var po = 0.38 * (1 - Math.sqrt(pd2) / grabReach);
+          var po = 0.38 * (1 - Math.sqrt(pd2) / grabReach) * pointer.strength;
           if (po <= 0.004) continue;
           ctx.strokeStyle = 'rgba(' + CREAM + ',' + po.toFixed(3) + ')';
           ctx.lineWidth = 1;
@@ -217,6 +227,16 @@
     }
 
     function step() {
+      /* One layout read per frame, for every pointer event since the
+         last one. */
+      if (pointer.target > 0 || pointer.strength > 0.01) {
+        var pr = canvas.getBoundingClientRect();
+        pointer.x = pointer.cx - pr.left;
+        pointer.y = pointer.cy - pr.top;
+      }
+      pointer.strength += (pointer.target - pointer.strength) * 0.12;
+      if (pointer.strength < 0.005) pointer.strength = 0;
+
       for (var i = 0; i < nodes.length; i++) {
         var n = nodes[i];
         n.x += n.vx;
@@ -304,22 +324,46 @@
          level. Listening on .hero keeps the scope tight and still
          gets the events. */
       var pointerHost = host.closest('.hero') || host.parentNode || host;
-      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-        pointerHost.addEventListener('pointermove', function (e) {
-          /* Measured against the canvas, which is the coordinate
-             space the nodes live in. */
-          var r = canvas.getBoundingClientRect();
-          pointer.x = e.clientX - r.left;
-          pointer.y = e.clientY - r.top;
-          pointer.live = true;
-          /* A stationary cursor over a paused field would leave the
-             grab lines unpainted; nothing else wakes the loop. */
-          if (!running) play();
-        }, { passive: true });
-        pointerHost.addEventListener('pointerleave', function () {
-          pointer.live = false;
-        }, { passive: true });
-      }
+
+      var reach = function (x, y) {
+        pointer.cx = x;
+        pointer.cy = y;
+        pointer.target = 1;
+        /* A pointer arriving over a field that paused off-screen
+           would otherwise leave the grab lines unpainted. */
+        if (!running) play();
+      };
+      var release = function () { pointer.target = 0; };
+
+      /* MOUSE: the web follows the cursor with no click needed. */
+      pointerHost.addEventListener('mousemove', function (e) {
+        reach(e.clientX, e.clientY);
+      }, { passive: true });
+      pointerHost.addEventListener('mouseleave', release, { passive: true });
+
+      /* TOUCH: the whole effect used to be gated behind
+         (hover: hover) and (pointer: fine), so on a phone none of
+         this was attached and the web never reached for anything.
+         There is no cursor on a touchscreen, but there is a finger,
+         and it is a better target than a cursor because you can see
+         exactly where it is.
+
+         Touch events rather than pointer events on purpose. iOS
+         fires pointercancel the moment it claims a gesture for
+         scrolling, which killed the effect the instant you started
+         to move - whereas touchmove keeps firing all the way
+         through the scroll. Passive throughout, and nothing calls
+         preventDefault, so scrolling is untouched. */
+      pointerHost.addEventListener('touchstart', function (e) {
+        var t = e.touches[0];
+        if (t) reach(t.clientX, t.clientY);
+      }, { passive: true });
+      pointerHost.addEventListener('touchmove', function (e) {
+        var t = e.touches[0];
+        if (t) reach(t.clientX, t.clientY);
+      }, { passive: true });
+      pointerHost.addEventListener('touchend', release, { passive: true });
+      pointerHost.addEventListener('touchcancel', release, { passive: true });
 
       /* A phone turning landscape more than doubles the hero's
          area, which is precisely the case the derivation exists
@@ -337,7 +381,8 @@
        the blank hero this module exists to prevent. */
     function freeze() {
       pause();
-      pointer.live = false;
+      pointer.target = 0;
+      pointer.strength = 0;
       if (ctx) draw();
     }
 
