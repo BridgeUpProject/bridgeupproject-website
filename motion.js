@@ -701,29 +701,58 @@
   /* Hand-drawn rough-notation marks on the two phrases the mission
      statement actually argues for. Drawn once, sequenced, after the
      masked-line reveal has finished settling. */
+  /* site.css gives these two marks a plain CSS underline and box by
+     default, because rough-notation is the one library on this page
+     whose absence would be silent - the sentence stays readable and
+     simply stops emphasising anything.
+
+     .rn-live is what turns that fallback off, and it is added only
+     once the annotations have actually been constructed. Every
+     failure path - script missing, GSAP dead upstream, annotate()
+     throwing - just never reaches it, so the fallback stands with no
+     detection needed.
+
+     The class goes on at construction rather than at draw, so the
+     swap happens before the mission is scrolled into view and never
+     reads as a flicker. If the deferred show() throws anyway, the
+     fallback is put straight back. */
   function initNotation() {
     if (!window.RoughNotation) return;
     var marks = qa('.mission .note-mark');
     if (!marks.length) return;
-    marks.forEach(function (el) {
-      var box = el.getAttribute('data-note') === 'box';
-      notes.push(RoughNotation.annotate(el, {
-        type: box ? 'box' : 'underline',
-        color: box ? '#1161A8' : '#E9BE3F',
-        strokeWidth: 2.5,
-        padding: box ? 5 : 2,
-        iterations: 2,
-        animationDuration: 900,
-        multiline: true
-      }));
-    });
+
+    try {
+      marks.forEach(function (el) {
+        var box = el.getAttribute('data-note') === 'box';
+        notes.push(RoughNotation.annotate(el, {
+          type: box ? 'box' : 'underline',
+          color: box ? '#1161A8' : '#E9BE3F',
+          strokeWidth: 2.5,
+          padding: box ? 5 : 2,
+          iterations: 2,
+          animationDuration: 900,
+          multiline: true
+        }));
+      });
+    } catch (e) {
+      notes.length = 0;
+      return;                      /* fallback stands */
+    }
+
+    root.classList.add('rn-live');
+
     ScrollTrigger.create({
       trigger: '.mission',
       start: 'top 60%',
       once: true,
       onEnter: function () {
         window.setTimeout(function () {
-          RoughNotation.annotationGroup(notes).show();
+          try {
+            RoughNotation.annotationGroup(notes).show();
+          } catch (e) {
+            /* Nothing will be drawn. Give the marks back. */
+            root.classList.remove('rn-live');
+          }
         }, 650);
       }
     });
@@ -1475,8 +1504,12 @@
     if (lenisTick) { gsap.ticker.remove(lenisTick); lenisTick = null; }
     if (lenis) { lenis.destroy(); lenis = null; }
     constellation.freeze();
+    /* The annotations are being torn off the page, so the CSS
+       fallback has to come back with them or the mission statement
+       loses its emphasis for the rest of the session. */
     notes.forEach(function (n) { try { n.remove(); } catch (e) {} });
     notes = [];
+    root.classList.remove('rn-live');
     if (progressBar.parentNode) progressBar.parentNode.removeChild(progressBar);
     gsap.set(qa(
       '[data-reveal], [data-words], .hero-glow, .hero-arcline path, .hero-inner, ' +

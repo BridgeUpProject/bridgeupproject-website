@@ -1253,6 +1253,43 @@ body > nav{ gap: 16px; }
   color: var(--gold-ink);
 }
 
+/* ---------- Mission emphasis, and its fallback ----------
+
+   The two phrases the mission statement exists to stress are marked
+   by rough-notation at runtime, and they had NO css at all. If that
+   11 KB script failed to load - or if GSAP failed earlier, which
+   returns before the annotation code is ever reached - the emphasis
+   silently vanished. The sentence stayed readable, so nothing looked
+   broken; it just quietly stopped saying what it was written to say.
+
+   So the fallback is the DEFAULT state, and motion.js switches it
+   off by adding .rn-live once it has actually constructed the
+   annotations. Failure needs no detection: every path that ends
+   without a drawn annotation simply never adds the class.
+
+   Both fallbacks are layout-neutral on purpose. A background
+   gradient and a box-shadow occupy no space, so the swap to the
+   hand-drawn marks cannot shift the sentence. Padding here would
+   have cost a layout shift on every load that succeeded. */
+.note-mark{
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;   /* underline each wrapped fragment */
+}
+.note-mark[data-note="underline"]{
+  background: linear-gradient(var(--gold), var(--gold))
+              0 92% / 100% 0.085em no-repeat;
+}
+.note-mark[data-note="box"]{
+  /* Inner paper ring supplies the breathing room rough-notation
+     gets from padding: 5, without occupying layout. */
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
+  border-radius: 4px;
+}
+
+/* rough-notation is live and will draw these itself. */
+.rn-live .note-mark[data-note="underline"]{ background: none; }
+.rn-live .note-mark[data-note="box"]{ box-shadow: none; }
+
 /* ---------- Screen-reader-only utility ---------- */
 .sr-only{
   position: absolute;
