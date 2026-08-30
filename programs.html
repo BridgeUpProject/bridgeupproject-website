@@ -11,7 +11,15 @@
 <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="theme-color" content="#1D3F73">
-<link rel="icon" href="/bridge_up_project_logo.svg" type="image/svg+xml">
+<!-- Icons. The .ico is listed first and carries 16/32/48 rasters because
+     that is the file Google Search falls back to and it re-crawls it on its
+     own schedule; browsers that understand SVG take favicon.svg instead.
+     apple-touch-icon is a separate, opaque file on purpose - iOS composites
+     a transparent icon onto black, which would swallow the cobalt. -->
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <meta name="description" content="AI Pathways: an eight-week, small-group workshop introducing teens in care to AI as a practical tool.">
 <meta property="og:title" content="Programs — The Bridge Up Project: AI Pathways">
 <meta property="og:description" content="AI Pathways: an eight-week, small-group workshop introducing teens in care to AI as a practical tool.">

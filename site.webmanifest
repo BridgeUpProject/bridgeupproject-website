@@ -1,0 +1,13 @@
+{
+  "name": "The Bridge Up Project",
+  "short_name": "Bridge Up",
+  "description": "The Bridge Up Project teaches foster youth independence skills through AI literacy.",
+  "start_url": "/",
+  "display": "browser",
+  "theme_color": "#1D3F73",
+  "background_color": "#FAF8F4",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

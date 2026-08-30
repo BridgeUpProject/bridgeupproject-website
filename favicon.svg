@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Bridge Up Project">
+  <title>The Bridge Up Project</title>
+  <!--
+    The favicon is the bridge on its own - no wordmark. The full logo is
+    640x220 and two thirds of it is type, so at the 16-48px a favicon is
+    actually drawn at, the mark shrank to about twelve pixels and the
+    lettering turned to grey mush. That was the "blurry on Google".
+
+    This is not the logo scaled down, it is the mark redrawn for the size.
+    Every stroke is roughly twice its weight in the master file, because a
+    line thinner than about 1.5 device pixels renders as a grey smear
+    rather than a line. Everything also sits inside the circle inscribed
+    in this box, since Google Search and most launchers crop favicons round.
+
+    The arc is painted FIRST, so the piers and deck lay over it. At these
+    weights the arc's feet would otherwise fuse into the left pier and read
+    as one thick L; letting the solid shapes cut across it keeps the towers,
+    the span and the deck legible as separate parts all the way down to 16px.
+  -->
+  <path d="M 12 47 Q 32 17 52 47" fill="none" stroke="#2B5291" stroke-width="6" stroke-linecap="round"/>
+  <rect x="9"  y="26" width="6"  height="27" fill="#1161A8"/>
+  <rect x="49" y="26" width="6"  height="27" fill="#E9BE3F"/>
+  <rect x="8"  y="46" width="48" height="6"  fill="#1161A8"/>
+  <circle cx="32" cy="14" r="6.5" fill="#E9BE3F"/>
+</svg>
