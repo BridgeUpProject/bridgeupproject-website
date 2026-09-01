@@ -66,7 +66,7 @@ you change one, change both.
 Three layers, in order of preference, each a fallback for the one above:
 
 1. **`motion.js`** — GSAP, ScrollTrigger, SplitText, DrawSVG, ScrambleText, plus
-   Lenis, anime.js and Motion for the CTA choreography. Claims the page by setting
+   anime.js and Motion for the CTA choreography. Claims the page by setting
    `window.__BU_MOTION_OK__`, but only *after* its init chain resolves.
 2. **`site.js`** — a dependency-free engine using IntersectionObserver and one rAF
    loop. Runs when a vendor script fails to load.

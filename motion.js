@@ -464,8 +464,6 @@
   var counters  = [];
   var scrambles = [];
   var mm        = gsap.matchMedia();
-  var lenis     = null;
-  var lenisTick = null;
   var notes     = [];
 
   /* Sections with bespoke choreography opt out of the generic
@@ -527,9 +525,8 @@
     /* These two loops run forever with repeat: -1, on all four
        pages. Because they never finish, GSAP's ticker never idles,
        so the browser holds a rAF loop open for the life of every
-       page - and Lenis, which is driven from that same ticker,
-       gets called sixty times a second whether or not anything is
-       scrolling. On a laptop that is invisible; on a phone it is
+       page, ticking sixty times a second whether or not anything
+       is moving. On a laptop that is invisible; on a phone it is
        battery spent on two blurred ellipses nobody is looking at.
 
        ScrollTrigger pauses each tween when its glow leaves the
@@ -653,7 +650,6 @@
     initReveals();
     initDrift();
 
-    initLenis();
     initHero();
     initPageHeader();
     initCounters();
@@ -674,28 +670,6 @@
     root.classList.remove('gsap');
   });
 
-
-  /* ---------------- Site-wide: Lenis smooth scroll ---------------- */
-  /* Lenis replaces native scrolling with an eased interpolation and
-     hands every frame to ScrollTrigger, so scrubbed scenes ride the
-     same smoothed value the page does. Touch devices keep native
-     scrolling: their momentum physics already feel right, and fighting
-     them reads as jank, not polish. */
-  function initLenis() {
-    if (!window.Lenis) return;
-    if (window.matchMedia('(hover: none)').matches) return;
-    lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.12 });
-    window.__BU_LENIS__ = lenis;
-    lenis.on('scroll', ScrollTrigger.update);
-    /* Held in a variable so neutralize() can actually unregister it.
-       An anonymous callback here could only ever be orphaned: it
-       closes over `lenis`, neutralize() sets that to null, and the
-       ticker goes on invoking it every frame against null. The
-       guard makes the frame harmless, removing it makes it stop. */
-    lenisTick = function (time) { if (lenis) lenis.raf(time * 1000); };
-    gsap.ticker.add(lenisTick);
-    gsap.ticker.lagSmoothing(0);
-  }
 
   /* ---------------- HOME: mission annotations ---------------- */
   /* Hand-drawn rough-notation marks on the two phrases the mission
@@ -1501,8 +1475,6 @@
     counters.forEach(function (c) { c.el.textContent = c.text; });
     scrambles.forEach(function (s) { s.el.textContent = s.text; });
     mm.revert();
-    if (lenisTick) { gsap.ticker.remove(lenisTick); lenisTick = null; }
-    if (lenis) { lenis.destroy(); lenis = null; }
     constellation.freeze();
     /* The annotations are being torn off the page, so the CSS
        fallback has to come back with them or the mission statement

@@ -437,12 +437,7 @@
         Targets are not natively focusable, so they get
         tabindex="-1" at the moment of use rather than sitting in
         the markup. preventScroll keeps the browser from undoing
-        the smooth scroll we just asked for.
-
-        When Lenis is running it owns the scroll (constructed with
-        anchors:true), so we let it. Calling scrollIntoView here as
-        well put native smooth scrolling and Lenis's rAF loop in a
-        fight over the same scrollTop — the visible jank on desktop.
+        the scroll we just asked for.
      ---------------------------------------------------------- */
   Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'), function (link) {
     link.addEventListener('click', function (e) {
@@ -455,12 +450,6 @@
         if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
       };
-
-      if (window.__BU_LENIS__) {
-        /* Lenis handles the travel; we only add the focus move. */
-        window.setTimeout(focusTarget, 0);
-        return;
-      }
 
       e.preventDefault();
       /* Read the live value: the listener that refreshes reduceMotion

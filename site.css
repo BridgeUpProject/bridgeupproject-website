@@ -527,11 +527,10 @@ p{ text-wrap: pretty; }
 section[id]{ scroll-margin-top: 96px; }
 [tabindex="-1"]{ outline: none; }   /* focus targets: focusable, not ringed */
 
-/* No `html{ scroll-behavior: smooth }`. Both engines drive anchor
-   travel themselves — Lenis with anchors:true, the legacy engine
-   with scrollIntoView. Declaring it here as well put native smooth
-   scrolling in a fight with Lenis's rAF loop over the same
-   scrollTop, which is what produced the stutter on desktop. */
+/* No `html{ scroll-behavior: smooth }`. Anchor travel is driven from
+   JS (site.js, scrollIntoView) so the focus move can be sequenced
+   with it. Declaring it here as well would hand two engines the
+   same scrollTop, which is what produced the stutter on desktop. */
 
 /* ---------- Focus visibility ----------
 
