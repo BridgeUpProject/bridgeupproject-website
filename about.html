@@ -51,6 +51,54 @@ window.setTimeout(function(){
 <script src="/vendor/ScrambleTextPlugin.min.js" defer></script>
 <script src="/motion.js" defer></script>
 <script src="/site.js" defer></script>
+
+<!--
+  The person, stated once, with an @id every other site repeats verbatim.
+
+  Elovox, 4Form AI and The Bridge Up Project sit on three unrelated domains.
+  A crawler reading "Tyson Youm" on each has no reason to treat them as one
+  human rather than three coincidental strings. The shared @id is the join:
+  JSON-LD merges nodes that carry the same identifier, so emitting this exact
+  URI from all three documents collapses them into a single entity, and
+  `affiliation` is the edge naming which organizations that entity belongs to.
+
+  The @id resolves *here* because this is the only page across the three
+  sites that is about the person rather than about a product.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://bridgeupproject.org/about#person",
+      "name": "Tyson Youm",
+      "url": "https://bridgeupproject.org/about",
+      "description": "Tyson Youm is the founder of The Bridge Up Project, a co-founder of 4Form AI, and a co-founder of Elovox, where he leads product development.",
+      "affiliation": [
+        {
+          "@type": "NGO",
+          "@id": "https://bridgeupproject.org/#organization",
+          "name": "The Bridge Up Project",
+          "url": "https://bridgeupproject.org/"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://4formai.com/#organization",
+          "name": "4Form AI",
+          "url": "https://4formai.com/"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://elovox.app/#organization",
+          "name": "Elovox",
+          "url": "https://elovox.app"
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body class="page-about">
 

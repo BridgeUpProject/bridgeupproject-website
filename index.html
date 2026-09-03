@@ -57,31 +57,60 @@ window.setTimeout(function(){
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "NGO",
-  "@id": "https://bridgeupproject.org/#organization",
-  "name": "The Bridge Up Project",
-  "alternateName": [
-    "Bridge Up Project",
-    "AI Pathways"
-  ],
-  "url": "https://bridgeupproject.org/",
-  "logo": "https://bridgeupproject.org/logo.png",
-  "email": "info@bridgeupproject.org",
-  "description": "The Bridge Up Project is a youth-led nonprofit in formation that teaches foster youth independence skills through AI literacy. Its flagship program, AI Pathways, is an eight-week small-group workshop for teens in care.",
-  "founder": {
-    "@type": "Person",
-    "name": "Tyson Youm",
-    "jobTitle": "Founder"
-  },
-  "areaServed": {
-    "@type": "AdministrativeArea",
-    "name": "New York"
-  },
-  "knowsAbout": [
-    "AI literacy",
-    "foster youth",
-    "independence skills",
-    "youth mentorship"
+  "@graph": [
+    {
+      "@type": "NGO",
+      "@id": "https://bridgeupproject.org/#organization",
+      "name": "The Bridge Up Project",
+      "alternateName": [
+        "Bridge Up Project",
+        "AI Pathways"
+      ],
+      "url": "https://bridgeupproject.org/",
+      "logo": "https://bridgeupproject.org/logo.png",
+      "email": "info@bridgeupproject.org",
+      "description": "The Bridge Up Project is a youth-led nonprofit in formation that teaches foster youth independence skills through AI literacy. Its flagship program, AI Pathways, is an eight-week small-group workshop for teens in care.",
+      "founder": {
+        "@id": "https://bridgeupproject.org/about#person"
+      },
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "New York"
+      },
+      "knowsAbout": [
+        "AI literacy",
+        "foster youth",
+        "independence skills",
+        "youth mentorship"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://bridgeupproject.org/about#person",
+      "name": "Tyson Youm",
+      "url": "https://bridgeupproject.org/about",
+      "description": "Tyson Youm is the founder of The Bridge Up Project, a co-founder of 4Form AI, and a co-founder of Elovox, where he leads product development.",
+      "affiliation": [
+        {
+          "@type": "NGO",
+          "@id": "https://bridgeupproject.org/#organization",
+          "name": "The Bridge Up Project",
+          "url": "https://bridgeupproject.org/"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://4formai.com/#organization",
+          "name": "4Form AI",
+          "url": "https://4formai.com/"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://elovox.app/#organization",
+          "name": "Elovox",
+          "url": "https://elovox.app"
+        }
+      ]
+    }
   ]
 }
 </script>
